@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/ft-t/go-micro-consul v0.0.0-20211023122625-f3440745798e
 	github.com/gammazero/workerpool v1.1.2
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
+	github.com/go-redis/redis/v8 v8.11.4
 	github.com/gocql/gocql v0.0.0-20210817081954-bc256bbb90de
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/consul/api v1.11.0 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -35,6 +35,7 @@ require (
 	github.com/scylladb/gocqlx/v2 v2.4.0
 	github.com/segmentio/kafka-go v0.4.20
 	github.com/shirou/gopsutil/v3 v3.21.9
+	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.9.1
 	github.com/valyala/fasthttp v1.31.0
 	go-micro.dev/v4 v4.2.1
