@@ -59,17 +59,6 @@ func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWra
 }
 
 func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction, forceLog bool) chan ContentGetInternalResponse {
-	w.cache.Set(map[int64]interface{}{
-		1: SimpleContent{
-			Id:            1,
-			Duration:      0,
-			AgeRestricted: false,
-			AuthorId:      0,
-			CategoryId:    null.Int{},
-			Hashtags:      nil,
-		},
-	}, time.Minute*5)
-
 	respCh := make(chan ContentGetInternalResponse, 2)
 
 	finalResponse := map[int64]SimpleContent{}
