@@ -100,6 +100,15 @@ func (w *Wrapper) GetCachedUsers(userIds []int64, apmTransaction *apm.Transactio
 		}
 
 		httpRes, err := apm_helper.SendRequest(http.DefaultClient, httpReq, apmTransaction, true)
+		if err != nil {
+			result.Error = &rpc.RpcError{
+				Code:    error_codes.GenericServerError,
+				Message: err.Error(),
+				Data:    nil,
+			}
+			respCh <- result
+			return
+		}
 
 		var bodyResp []byte
 		if httpRes != nil && httpRes.Body != nil {
