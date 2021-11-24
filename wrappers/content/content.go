@@ -2,6 +2,9 @@ package content
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/digitalmonsters/go-common/apm_helper"
+	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
 	"github.com/digitalmonsters/go-common/error_codes"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
@@ -36,19 +39,50 @@ type IContentWrapper interface {
 
 //goland:noinspection GoNameStartsWithPackageName
 type ContentWrapper struct {
-	baseWrapper    *wrappers.BaseWrapper
-	defaultTimeout time.Duration
-	apiUrl         string
-	serviceName    string
+	baseWrapper       *wrappers.BaseWrapper
+	defaultTimeout    time.Duration
+	defaultExpiration time.Duration
+	cache             *inmemory_cache.Service
+	apiUrl            string
+	serviceName       string
 }
 
-func NewContentWrapper(apiUrl string) IContentWrapper {
-	return &ContentWrapper{baseWrapper: wrappers.GetBaseWrapper(), defaultTimeout: 5 * time.Second, apiUrl: apiUrl,
-		serviceName: "content-backend"}
+func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWrapper {
+	return &ContentWrapper{
+		baseWrapper:       wrappers.GetBaseWrapper(),
+		defaultTimeout:    5 * time.Second,
+		apiUrl:            apiUrl,
+		defaultExpiration: cacheExpiration,
+		serviceName:       "content-backend",
+		cache:             inmemory_cache.New(cacheExpiration),
+	}
 }
 
 func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction, forceLog bool) chan ContentGetInternalResponse {
 	respCh := make(chan ContentGetInternalResponse, 2)
+
+	finalResponse := map[int64]SimpleContent{}
+
+	cachedContent, missingInCache := w.cache.Get(contentIds)
+	for id, iface := range cachedContent {
+		user, ok := iface.(SimpleContent)
+		if !ok {
+			apm_helper.CaptureApmError(errors.New("cannot convert interface from cache"), apmTransaction)
+			continue
+		}
+
+		finalResponse[id] = user
+	}
+
+	if len(missingInCache) == 0 {
+		respCh <- ContentGetInternalResponse{
+			Error: nil,
+			Items: finalResponse,
+		}
+
+		close(respCh)
+		return respCh
+	}
 
 	respChan := w.baseWrapper.SendRequest(w.apiUrl, "ContentGetInternal", ContentGetInternalRequest{
 		ContentIds:     contentIds,
@@ -76,7 +110,14 @@ func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, ap
 					Data:    nil,
 				}
 			} else {
-				result.Items = items
+				toCache := map[int64]interface{}{}
+				for id, content := range items {
+					finalResponse[id] = content
+					toCache[id] = content
+				}
+
+				w.cache.Set(toCache, w.defaultExpiration)
+				result.Items = finalResponse
 			}
 		}
 
