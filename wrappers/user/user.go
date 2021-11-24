@@ -6,6 +6,9 @@ import (
 	"errors"
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
+	"github.com/digitalmonsters/go-common/error_codes"
+	"github.com/digitalmonsters/go-common/rpc"
+	"github.com/digitalmonsters/go-common/wrappers"
 	"go.elastic.co/apm"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +18,7 @@ import (
 type Wrapper struct {
 	apiUrl            string
 	defaultExpiration time.Duration
+	baseWrapper       *wrappers.BaseWrapper
 	cache             *inmemory_cache.Service
 }
 
@@ -28,65 +32,106 @@ type SimpleUser struct {
 	Verified    bool   `json:"verified"`
 }
 
+type CachedUsersResponse struct {
+	Error *rpc.RpcError        `json:"error"`
+	Items map[int64]SimpleUser `json:"items"`
+}
+
 type IUserWrapper interface {
-	GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) (map[int64]SimpleUser, error)
+	GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) chan CachedUsersResponse
 }
 
 func New(apiUrl string, cacheDefaultExp time.Duration) IUserWrapper {
 	return &Wrapper{
 		apiUrl:            apiUrl,
 		defaultExpiration: cacheDefaultExp,
+		baseWrapper:       wrappers.GetBaseWrapper(),
 		cache:             inmemory_cache.New(cacheDefaultExp),
 	}
 }
 
-func (w *Wrapper) GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) (map[int64]SimpleUser, error) {
-	result := map[int64]SimpleUser{}
+func (w *Wrapper) GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) chan CachedUsersResponse {
+	respCh := make(chan CachedUsersResponse, 2)
+
+	finalResponse := map[int64]SimpleUser{}
 
 	cachedUsers, missingInCache := w.cache.Get(userIds)
 	for id, iface := range cachedUsers {
-		user, ok := iface.(SimpleUser)
+		content, ok := iface.(SimpleUser)
 		if !ok {
 			apm_helper.CaptureApmError(errors.New("cannot convert interface from cache"), apmTransaction)
 			continue
 		}
 
-		result[id] = user
+		finalResponse[id] = content
 	}
 
 	if len(missingInCache) == 0 {
-		return result, nil
+		respCh <- CachedUsersResponse{
+			Error: nil,
+			Items: finalResponse,
+		}
+
+		close(respCh)
+		return respCh
 	}
 
-	//todo: api request logic
-	var body []byte
+	w.baseWrapper.GetPool().Submit(func() {
+		defer func() {
+			close(respCh)
+		}()
 
-	httpReq, err := http.NewRequest("POST", w.apiUrl, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
+		result := CachedUsersResponse{
+			Error: nil,
+		}
 
-	httpRes, err := apm_helper.SendRequest(http.DefaultClient, httpReq, apmTransaction, true)
+		//todo: api request logic
+		var body []byte
 
-	var bodyResp []byte
-	if httpRes != nil && httpRes.Body != nil {
-		bodyResp, _ = ioutil.ReadAll(httpRes.Body)
-	}
+		httpReq, err := http.NewRequest("POST", w.apiUrl, bytes.NewReader(body))
+		if err != nil {
+			result.Error = &rpc.RpcError{
+				Code:    error_codes.GenericServerError,
+				Message: err.Error(),
+				Data:    nil,
+			}
+			respCh <- result
+			return
+		}
 
-	var users []SimpleUser
+		httpRes, err := apm_helper.SendRequest(http.DefaultClient, httpReq, apmTransaction, true)
 
-	err = json.Unmarshal(bodyResp, &users)
-	if err != nil {
-		return nil, err
-	}
+		var bodyResp []byte
+		if httpRes != nil && httpRes.Body != nil {
+			bodyResp, _ = ioutil.ReadAll(httpRes.Body)
+		}
 
-	toCache := map[int64]interface{}{}
-	for _, user := range users {
-		result[user.Id] = user
-		toCache[user.Id] = user
-	}
+		var users map[int64]SimpleUser
 
-	w.cache.Set(toCache, w.defaultExpiration)
+		err = json.Unmarshal(bodyResp, &users)
+		if err != nil {
+			result.Error = &rpc.RpcError{
+				Code:    error_codes.GenericMappingError,
+				Message: err.Error(),
+				Data:    nil,
+			}
+			respCh <- result
+			return
+		}
 
-	return result, nil
+		if len(users) > 0 {
+			toCache := map[int64]interface{}{}
+			for id, user := range users {
+				finalResponse[id] = user
+				toCache[id] = user
+			}
+
+			w.cache.Set(toCache, w.defaultExpiration)
+			result.Items = finalResponse
+		}
+
+		respCh <- result
+	})
+
+	return respCh
 }

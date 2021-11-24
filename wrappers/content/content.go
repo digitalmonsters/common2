@@ -59,19 +59,30 @@ func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWra
 }
 
 func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction, forceLog bool) chan ContentGetInternalResponse {
+	w.cache.Set(map[int64]interface{}{
+		1: SimpleContent{
+			Id:            1,
+			Duration:      0,
+			AgeRestricted: false,
+			AuthorId:      0,
+			CategoryId:    null.Int{},
+			Hashtags:      nil,
+		},
+	}, time.Minute*5)
+
 	respCh := make(chan ContentGetInternalResponse, 2)
 
 	finalResponse := map[int64]SimpleContent{}
 
 	cachedContent, missingInCache := w.cache.Get(contentIds)
 	for id, iface := range cachedContent {
-		user, ok := iface.(SimpleContent)
+		content, ok := iface.(SimpleContent)
 		if !ok {
 			apm_helper.CaptureApmError(errors.New("cannot convert interface from cache"), apmTransaction)
 			continue
 		}
 
-		finalResponse[id] = user
+		finalResponse[id] = content
 	}
 
 	if len(missingInCache) == 0 {
