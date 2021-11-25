@@ -38,8 +38,12 @@ func (s *Service) Get(ids []int64) (map[int64]interface{}, []int64) {
 	return result, missingData
 }
 
-func (s *Service) Set(data map[int64]interface{}, expiration time.Duration) {
-	for key, iface := range data {
-		s.cache.Set(fmt.Sprint(key), iface, expiration)
+func (s *Service) SetInt64KeyBatch(data map[int64]interface{}, expiration time.Duration) {
+	for key, value := range data {
+		s.SetInt64Key(key, value, expiration)
 	}
+}
+
+func (s *Service) SetInt64Key(key int64, value interface{}, expiration time.Duration) {
+	s.cache.Set(fmt.Sprint(key), value, expiration)
 }

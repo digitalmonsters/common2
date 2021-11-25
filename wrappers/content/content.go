@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
+	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
@@ -51,53 +52,48 @@ func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWra
 	return &ContentWrapper{
 		baseWrapper:       wrappers.GetBaseWrapper(),
 		defaultTimeout:    5 * time.Second,
-		apiUrl:            apiUrl,
+		apiUrl:            common.StripSlashFromUrl(apiUrl),
 		defaultExpiration: cacheExpiration,
 		serviceName:       "content-backend",
 		cache:             inmemory_cache.New(cacheExpiration),
 	}
-func NewContentWrapper(apiUrl string) IContentWrapper {
-	return &ContentWrapper{baseWrapper: wrappers.GetBaseWrapper(), defaultTimeout: 5 * time.Second,
-		apiUrl: common.StripSlashFromUrl(apiUrl),
-		serviceName: "content-backend"}
 }
 
-func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction, forceLog bool) chan ContentGetInternalResponseChan {
+func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction,
+	forceLog bool) chan ContentGetInternalResponseChan {
 	respCh := make(chan ContentGetInternalResponseChan, 2)
-
-	finalResponse := map[int64]SimpleContent{}
-
-	cachedContent, missingInCache := w.cache.Get(contentIds)
-	for id, iface := range cachedContent {
-		content, ok := iface.(SimpleContent)
-		if !ok {
-			apm_helper.CaptureApmError(errors.New("cannot convert interface from cache"), apmTransaction)
-			continue
-		}
-
-		finalResponse[id] = content
-	}
-
-	if len(missingInCache) == 0 {
-		respCh <- ContentGetInternalResponse{
-			Error: nil,
-			Items: finalResponse,
-		}
-
-		close(respCh)
-		return respCh
-	}
-
-	respChan := w.baseWrapper.SendRequest(w.apiUrl, "ContentGetInternal", ContentGetInternalRequest{
-	respChan := w.baseWrapper.SendRpcRequest(w.apiUrl, "ContentGetInternal", ContentGetInternalRequest{
-		ContentIds:     contentIds,
-		IncludeDeleted: includeDeleted,
-	}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 	w.baseWrapper.GetPool().Submit(func() {
 		defer func() {
 			close(respCh)
 		}()
+
+		finalResponse := map[int64]SimpleContent{}
+
+		cachedContent, missingInCache := w.cache.Get(contentIds)
+		for id, record := range cachedContent {
+			content, ok := record.(SimpleContent)
+			if !ok {
+				apm_helper.CaptureApmError(errors.New("cannot convert interface from cache"), apmTransaction)
+				continue
+			}
+
+			finalResponse[id] = content
+		}
+
+		if len(missingInCache) == 0 {
+			respCh <- ContentGetInternalResponseChan{
+				Error: nil,
+				Items: finalResponse,
+			}
+
+			return
+		}
+
+		respChan := w.baseWrapper.SendRpcRequest(w.apiUrl, "ContentGetInternal", ContentGetInternalRequest{
+			ContentIds:     missingInCache,
+			IncludeDeleted: includeDeleted,
+		}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 		resp := <-respChan
 
@@ -115,13 +111,11 @@ func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, ap
 					Data:    nil,
 				}
 			} else {
-				toCache := map[int64]interface{}{}
-				for id, content := range items {
-					finalResponse[id] = content
-					toCache[id] = content
+				for k, v := range items {
+					w.cache.SetInt64Key(k, v, w.defaultExpiration)
+					finalResponse[k] = v
 				}
 
-				w.cache.Set(toCache, w.defaultExpiration)
 				result.Items = finalResponse
 			}
 		}
