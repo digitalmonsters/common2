@@ -79,16 +79,18 @@ func (w *Wrapper) GetCachedUsers(userIds []int64, apmTransaction *apm.Transactio
 		}
 
 		//todo: api request logic
-		var body []byte
 
-		req := &fasthttp.Request{}
+		client := &fasthttp.Client{}
+
+		req := fasthttp.AcquireRequest()
+		defer fasthttp.ReleaseRequest(req)
+		resp := fasthttp.AcquireResponse()
+		defer fasthttp.ReleaseResponse(resp)
+
 		req.SetRequestURI(w.apiUrl)
 		req.Header.SetMethod("POST")
-		req.SetBody(body)
 
-		var resp *fasthttp.Response
-
-		err := apm_helper.SendHttpRequest(nil, req, resp, apmTransaction, time.Minute, true)
+		err := apm_helper.SendHttpRequest(client, req, resp, apmTransaction, time.Second*10, true)
 		if err != nil {
 			result.Error = &rpc.RpcError{
 				Code:    error_codes.GenericServerError,
