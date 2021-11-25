@@ -1,12 +1,15 @@
 package content
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/digitalmonsters/go-common/apm_helper"
+	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
+	"github.com/digitalmonsters/go-common/kafka_listener"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"go.elastic.co/apm"
@@ -44,12 +47,13 @@ type ContentWrapper struct {
 	defaultTimeout    time.Duration
 	defaultExpiration time.Duration
 	cache             *inmemory_cache.Service
+	l                 *kafka_listener.BatchListener
 	apiUrl            string
 	serviceName       string
 }
 
-func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWrapper {
-	return &ContentWrapper{
+func NewContentWrapper(apiUrl string, cacheExpiration time.Duration, kafkaConfig boilerplate.KafkaListenerConfiguration, ctx context.Context) IContentWrapper {
+	w := &ContentWrapper{
 		baseWrapper:       wrappers.GetBaseWrapper(),
 		defaultTimeout:    5 * time.Second,
 		apiUrl:            common.StripSlashFromUrl(apiUrl),
@@ -57,6 +61,10 @@ func NewContentWrapper(apiUrl string, cacheExpiration time.Duration) IContentWra
 		serviceName:       "content-backend",
 		cache:             inmemory_cache.New(cacheExpiration),
 	}
+
+	w.InitKafkaListener(kafkaConfig, ctx)
+
+	return w
 }
 
 func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, apmTransaction *apm.Transaction,
