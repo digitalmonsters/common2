@@ -1,15 +1,13 @@
 package content
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/digitalmonsters/go-common/apm_helper"
-	"github.com/digitalmonsters/go-common/boilerplate"
-	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
+	"github.com/digitalmonsters/go-common/cache"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
-	"github.com/digitalmonsters/go-common/kafka_listener"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"go.elastic.co/apm"
@@ -45,24 +43,23 @@ type IContentWrapper interface {
 type ContentWrapper struct {
 	baseWrapper       *wrappers.BaseWrapper
 	defaultTimeout    time.Duration
-	defaultExpiration time.Duration
-	cache             *inmemory_cache.Service
-	l                 *kafka_listener.BatchListener
+	dataCache         cache.ICache
 	apiUrl            string
 	serviceName       string
 }
 
-func NewContentWrapper(apiUrl string, cacheExpiration time.Duration, kafkaConfig boilerplate.KafkaListenerConfiguration, ctx context.Context) IContentWrapper {
+func NewContentWrapper(apiUrl string, dataCache cache.ICache) IContentWrapper {
 	w := &ContentWrapper{
-		baseWrapper:       wrappers.GetBaseWrapper(),
-		defaultTimeout:    5 * time.Second,
-		apiUrl:            common.StripSlashFromUrl(apiUrl),
-		defaultExpiration: cacheExpiration,
-		serviceName:       "content-backend",
-		cache:             inmemory_cache.New(cacheExpiration),
+		baseWrapper:    wrappers.GetBaseWrapper(),
+		defaultTimeout: 5 * time.Second,
+		apiUrl:         common.StripSlashFromUrl(apiUrl),
+		serviceName:    "content-backend",
+		dataCache:      dataCache,
 	}
 
-	w.InitKafkaListener(kafkaConfig, ctx)
+	if w.dataCache == nil {
+		w.dataCache = cache.NoopCache{}
+	}
 
 	return w
 }
@@ -78,7 +75,7 @@ func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, ap
 
 		finalResponse := map[int64]SimpleContent{}
 
-		cachedContent, missingInCache := w.cache.Get(contentIds)
+		cachedContent, missingInCache := w.dataCache.GetByInt64s(contentIds)
 		for id, record := range cachedContent {
 			content, ok := record.(SimpleContent)
 			if !ok {
@@ -120,7 +117,8 @@ func (w *ContentWrapper) GetInternal(contentIds []int64, includeDeleted bool, ap
 				}
 			} else {
 				for k, v := range items {
-					w.cache.SetInt64Key(k, v, w.defaultExpiration)
+					w.dataCache.SetByString(fmt.Sprint(k), v, cache.DefaultExpiration)
+
 					finalResponse[k] = v
 				}
 
