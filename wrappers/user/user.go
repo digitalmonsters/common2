@@ -2,11 +2,14 @@ package user
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/digitalmonsters/go-common/apm_helper"
+	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/cache/inmemory_cache"
 	"github.com/digitalmonsters/go-common/error_codes"
+	"github.com/digitalmonsters/go-common/kafka_listener"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"go.elastic.co/apm"
@@ -20,34 +23,26 @@ type Wrapper struct {
 	defaultExpiration time.Duration
 	baseWrapper       *wrappers.BaseWrapper
 	cache             *inmemory_cache.Service
-}
-
-type SimpleUser struct {
-	Id          int64  `json:"id"`
-	Avatar      string `json:"avatar"`
-	DisplayName string `json:"displayname"`
-	Firstname   string `json:"firstname"`
-	Lastname    string `json:"lastname"`
-	Username    string `json:"username"`
-	Verified    bool   `json:"verified"`
-}
-
-type CachedUsersResponse struct {
-	Error *rpc.RpcError        `json:"error"`
-	Items map[int64]SimpleUser `json:"items"`
+	ctx               context.Context
+	l                 *kafka_listener.BatchListener
 }
 
 type IUserWrapper interface {
 	GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) chan CachedUsersResponse
 }
 
-func New(apiUrl string, cacheDefaultExp time.Duration) IUserWrapper {
-	return &Wrapper{
+func New(apiUrl string, cacheDefaultExp time.Duration, kafkaConfig boilerplate.KafkaListenerConfiguration, ctx context.Context) IUserWrapper {
+	w := &Wrapper{
 		apiUrl:            apiUrl,
+		ctx:               ctx,
 		defaultExpiration: cacheDefaultExp,
 		baseWrapper:       wrappers.GetBaseWrapper(),
 		cache:             inmemory_cache.New(cacheDefaultExp),
 	}
+
+	w.InitKafkaListener(kafkaConfig, ctx)
+
+	return w
 }
 
 func (w *Wrapper) GetCachedUsers(userIds []int64, apmTransaction *apm.Transaction) chan CachedUsersResponse {
