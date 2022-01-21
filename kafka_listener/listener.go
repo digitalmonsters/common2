@@ -211,6 +211,9 @@ func (k *kafkaListener) getReaderForPartition(partition int) (*kafka.Reader, err
 func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Duration) {
 	var partitions []int
 	var err error
+	b := backoff.NewExponentialBackOff()
+	b.MaxElapsedTime = time.Duration(k.cfg.MaxBackOffTimeMilliseconds) * time.Millisecond
+	b.InitialInterval = time.Duration(k.cfg.BackOffTimeIntervalMilliseconds) * time.Millisecond
 
 	for k.ctx.Err() == nil {
 		if err := k.checkIfTopicExists(k.targetTopic); err != nil {
@@ -222,7 +225,11 @@ func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Durat
 			apm_helper.CaptureApmError(err, transaction)
 
 			transaction.End()
-			time.Sleep(10 * time.Second)
+			duration := b.NextBackOff()
+			if duration == b.Stop {
+				break
+			}
+			time.Sleep(duration)
 			continue
 		}
 
@@ -231,7 +238,7 @@ func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Durat
 		if err != nil {
 			log.Err(err).Send()
 
-			time.Sleep(10 * time.Second)
+			time.Sleep(b.NextBackOff())
 		}
 
 		if true { // fck linter
@@ -245,7 +252,9 @@ func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Durat
 
 	for _, partition := range partitions {
 		p := partition
-
+		bPartitions := backoff.NewExponentialBackOff()
+		bPartitions.MaxElapsedTime = time.Duration(k.cfg.MaxBackOffTimeMilliseconds) * time.Millisecond
+		bPartitions.InitialInterval = time.Duration(k.cfg.BackOffTimeIntervalMilliseconds) * time.Millisecond
 		go func() {
 			firstRun := true
 			for k.ctx.Err() == nil {
@@ -253,8 +262,11 @@ func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Durat
 
 				if err != nil {
 					log.Err(err).Send()
-
-					time.Sleep(10 * time.Second)
+					duration := bPartitions.NextBackOff()
+					if duration == bPartitions.Stop {
+						break
+					}
+					time.Sleep(duration)
 					continue
 				}
 
@@ -277,7 +289,11 @@ func (k *kafkaListener) ListenInBatches(maxBatchSize int, maxDuration time.Durat
 					log.Err(err).Send()
 
 					tx.End()
-					time.Sleep(5 * time.Second)
+					duration := bPartitions.NextBackOff()
+					if duration == bPartitions.Stop {
+						break
+					}
+					time.Sleep(duration)
 				}
 			}
 		}()
