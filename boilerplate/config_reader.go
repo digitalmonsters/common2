@@ -109,6 +109,12 @@ type S3Config struct {
 	Region       string `json:"Region"`
 }
 
+type SESConfig struct {
+	Region  string `json:"Region"`
+	CharSet string `json:"CharSet"`
+	Sender  string `json:"Sender"`
+}
+
 type KafkaListenerConfiguration struct {
 	Hosts                           string     `json:"Hosts"`
 	Topic                           string     `json:"Topic"`
