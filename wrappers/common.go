@@ -214,6 +214,10 @@ func (b *BaseWrapper) GetRpcResponse(url string, request interface{}, methodName
 				code = error_codes.GenericTimeoutError
 			}
 
+			if externalServiceName == "forward-auth" {
+				code = error_codes.InvalidJwtToken
+			}
+
 			responseCh <- rpc.RpcResponseInternal{
 				Error: &rpc.RpcError{
 					Code:        code,
@@ -234,14 +238,8 @@ func (b *BaseWrapper) GetRpcResponse(url string, request interface{}, methodName
 			wrapped := errors.Wrapf(err, "remote server status code [%v] can not unmarshal to rpc response internal",
 				apiResponse.statusCode)
 
-			code := error_codes.GenericMappingError
-
-			if externalServiceName == "forward-auth" {
-				code = error_codes.InvalidJwtToken
-			}
-
 			genericResponse.Error = &rpc.RpcError{
-				Code:        code,
+				Code:        error_codes.GenericMappingError,
 				Message:     wrapped.Error(),
 				Stack:       fmt.Sprintf("%+v", wrapped),
 				Data:        nil,
