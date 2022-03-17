@@ -20,6 +20,7 @@ type IUserWrapper interface {
 	GetUsers(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersResponseChan
 	GetUsersDetails(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersDetailsResponseChan
 	GetProfileBulk(currentUserId int64, userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetProfileBulkResponseChan
+	GetUserPrivateDetails(userId int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUserPrivateDetailsResponseChan
 }
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -211,4 +212,41 @@ func (w *UserWrapper) GetProfileBulk(currentUserId int64, userIds []int64, apmTr
 	}()
 
 	return resChan
+}
+
+func (w *UserWrapper) GetUserPrivateDetails(userId int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUserPrivateDetailsResponseChan {
+	responseChan := make(chan GetUserPrivateDetailsResponseChan, 2)
+	response := GetUserPrivateDetailsResponseChan{}
+
+	finalResponse := UsersPrivateInternalChan{}
+
+	rpcInternalResponse := <-w.baseWrapper.SendRequestWithRpcResponseFromNodeJsService(fmt.Sprintf("%v/mobile/v1/profile/%v/getProfile", w.apiUrl, userId),
+		"GET",
+		"application/json",
+		"get users details",
+		nil, map[string]string{"user-id": fmt.Sprint(userId)}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
+
+	finalResponse.Error = rpcInternalResponse.Error
+
+	if finalResponse.Error == nil && len(rpcInternalResponse.Result) > 0 {
+		item := UserPrivateDetailRecord{}
+
+		if err := json.Unmarshal(rpcInternalResponse.Result, &item); err != nil {
+			finalResponse.Error = &rpc.RpcError{
+				Code:        error_codes.GenericMappingError,
+				Message:     err.Error(),
+				Data:        nil,
+				Hostname:    w.baseWrapper.GetHostName(),
+				ServiceName: w.serviceName,
+			}
+		} else {
+			finalResponse.UserPrivateDetailRecord = item
+		}
+	}
+	
+	response.User = finalResponse.UserPrivateDetailRecord
+
+	responseChan <- response
+
+	return responseChan
 }

@@ -59,7 +59,7 @@ type UserDetailRecord struct {
 	VideosCount  int         `json:"videos_count"`
 	IsFollowing  bool        `json:"is_following"`
 	IsFollower   bool        `json:"is_follower"`
-	Privacy      UerPrivacy  `json:"privacy"`
+	Privacy      UserPrivacy `json:"privacy"`
 	Profile      UserProfile `json:"profile"`
 	CountryName  string      `json:"country_name"`
 	Avatar       null.String `json:"avatar"`
@@ -67,7 +67,7 @@ type UserDetailRecord struct {
 	Guest        bool        `json:"guest"`
 }
 
-type UerPrivacy struct {
+type UserPrivacy struct {
 	EnablePublicMemberRating           bool `json:"enable_public_member_rating"`
 	EnableProfileComments              bool `json:"enable_profile_comments"`
 	RestrictProfileCommentsToFollowers bool `json:"restrict_profile_comments_to_followers"`
@@ -100,4 +100,48 @@ type UserProfile struct {
 
 type GetUsersDetailRequest struct {
 	UserIds []int64 `json:"user_ids"`
+}
+
+type UsersPrivateInternalChan struct {
+	Error *rpc.RpcError
+	UserPrivateDetailRecord
+}
+type GetUserPrivateDetailsResponseChan struct {
+	Error *rpc.RpcError
+	User  UserPrivateDetailRecord `json:"user"`
+}
+
+type UserKyc struct {
+	Status string      `json:"status"`
+	Reason null.String `json:"reason"`
+}
+
+type UserPrivateDetailRecord struct {
+	Id                  int64       `json:"id"`
+	Username            null.String `json:"username"`
+	Firstname           string      `json:"firstname"`
+	Lastname            string      `json:"lastname"`
+	Birthdate           int64       `json:"birthdate"`
+	CountryCode         string      `json:"country_code"`
+	Phone               string      `json:"phone"`
+	GoogleUid           null.String `json:"google_uid"`
+	AppleUid            null.String `json:"apple_uid"`
+	Gender              null.String `json:"gender"`
+	VaultPoints         null.String `json:"vault_points"`
+	Following           int         `json:"following"`
+	Followers           int         `json:"followers"`
+	Uploads             int         `json:"uploads"`
+	Views               int         `json:"views"`
+	Shares              int         `json:"shares"`
+	Likes               int         `json:"likes"`
+	Comments            int         `json:"comments"`
+	CreatorStatus       int         `json:"creator_status"`
+	Privacy             UserPrivacy `json:"privacy"`
+	Profile             UserProfile `json:"profile"`
+	Kyc                 UserKyc     `json:"kyc"`
+	IsTipEnabled        bool        `json:"is_tip_enabled"`
+	CountryName         string      `json:"country_name"`
+	CreatorRejectReason null.String `json:"creator_reject_reason"`
+	Avatar              null.String `json:"avatar"`
+	TiktokAvatar        null.String `json:"tiktok_avatar"`
 }
