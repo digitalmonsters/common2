@@ -21,13 +21,15 @@ type IUserGoWrapper interface {
 	GetUsersActiveThresholds(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersActiveThresholdsResponseChan
 	GetUserIdsFilterByUsername(userIds []int64, searchQuery string, apmTransaction *apm.Transaction, forceLog bool) chan GetUserIdsFilterByUsernameResponseChan
 	GetUsersTags(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersTagsResponseChan
+	AuthGuest(deviceId string, apmTransaction *apm.Transaction, forceLog bool) chan AuthGuestResponseChan
 }
 
 //goland:noinspection GoNameStartsWithPackageName
 type UserGoWrapper struct {
 	baseWrapper    *wrappers.BaseWrapper
 	defaultTimeout time.Duration
-	apiUrl         string
+	serviceApiUrl  string
+	publicApiUrl   string
 	serviceName    string
 	cache          *cache.Cache
 }
@@ -48,7 +50,8 @@ func NewUserGoWrapper(config boilerplate.WrapperConfig) IUserGoWrapper {
 	return &UserGoWrapper{
 		baseWrapper:    wrappers.GetBaseWrapper(),
 		defaultTimeout: timeout,
-		apiUrl:         fmt.Sprintf("%v/rpc-service", common.StripSlashFromUrl(config.ApiUrl)),
+		serviceApiUrl:  fmt.Sprintf("%v/rpc-service", common.StripSlashFromUrl(config.ApiUrl)),
+		publicApiUrl:   common.StripSlashFromUrl(config.ApiUrl),
 		serviceName:    "user-go",
 		cache:          cache.New(4*time.Minute, 5*time.Minute),
 	}
@@ -79,7 +82,7 @@ func (u UserGoWrapper) GetUsers(userIds []int64, apmTransaction *apm.Transaction
 		return respCh
 	}
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetUsersInternal", GetUsersRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetUsersInternal", GetUsersRequest{
 		UserIds: userIdsToFetch,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
 
@@ -123,7 +126,7 @@ func (u UserGoWrapper) GetUsers(userIds []int64, apmTransaction *apm.Transaction
 func (u UserGoWrapper) GetUsersDetails(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersDetailsResponseChan {
 	respCh := make(chan GetUsersDetailsResponseChan, 2)
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetUsersDetailsInternal", GetUsersDetailRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetUsersDetailsInternal", GetUsersDetailRequest{
 		UserIds: userIds,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
 
@@ -163,7 +166,7 @@ func (u UserGoWrapper) GetUsersDetails(userIds []int64, apmTransaction *apm.Tran
 func (u UserGoWrapper) GetProfileBulk(currentUserId int64, userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetProfileBulkResponseChan {
 	respCh := make(chan GetProfileBulkResponseChan, 2)
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetProfileBulkInternal", GetProfileBulkRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetProfileBulkInternal", GetProfileBulkRequest{
 		CurrentUserId: currentUserId,
 		UserIds:       userIds,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
@@ -204,7 +207,7 @@ func (u UserGoWrapper) GetProfileBulk(currentUserId int64, userIds []int64, apmT
 func (u UserGoWrapper) GetUsersActiveThresholds(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersActiveThresholdsResponseChan {
 	respCh := make(chan GetUsersActiveThresholdsResponseChan, 2)
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetUsersActiveThresholds", GetUsersActiveThresholdsRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetUsersActiveThresholds", GetUsersActiveThresholdsRequest{
 		UserIds: userIds,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
 
@@ -244,7 +247,7 @@ func (u UserGoWrapper) GetUsersActiveThresholds(userIds []int64, apmTransaction 
 func (u UserGoWrapper) GetUserIdsFilterByUsername(userIds []int64, searchQuery string, apmTransaction *apm.Transaction, forceLog bool) chan GetUserIdsFilterByUsernameResponseChan {
 	respCh := make(chan GetUserIdsFilterByUsernameResponseChan, 2)
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetUserIdsFilterByUsername", GetUserIdsFilterByUsernameRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetUserIdsFilterByUsername", GetUserIdsFilterByUsernameRequest{
 		UserIds:     userIds,
 		SearchQuery: searchQuery,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
@@ -285,7 +288,7 @@ func (u UserGoWrapper) GetUserIdsFilterByUsername(userIds []int64, searchQuery s
 func (u UserGoWrapper) GetUsersTags(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUsersTagsResponseChan {
 	respCh := make(chan GetUsersTagsResponseChan, 2)
 
-	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetUsersTags", GetUsersTagsRequest{
+	respChan := u.baseWrapper.SendRpcRequest(u.serviceApiUrl, "GetUsersTags", GetUsersTagsRequest{
 		UserIds: userIds,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
 
@@ -320,4 +323,37 @@ func (u UserGoWrapper) GetUsersTags(userIds []int64, apmTransaction *apm.Transac
 	}()
 
 	return respCh
+}
+
+func (u *UserGoWrapper) AuthGuest(deviceId string, apmTransaction *apm.Transaction, forceLog bool) chan AuthGuestResponseChan {
+	resChan := make(chan AuthGuestResponseChan, 2)
+
+	go func() {
+		link := fmt.Sprintf("%v/auth/guest", u.publicApiUrl)
+
+		rpcInternalResponse := <-u.baseWrapper.SendRequestWithRpcResponseFromAnyService(link,
+			"POST",
+			"application/json",
+			"auth guest",
+			AuthGuestRequest{DeviceId: deviceId}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
+
+		finalResponse := AuthGuestResponseChan{
+			Error: rpcInternalResponse.Error,
+		}
+		if len(rpcInternalResponse.Result) > 0 {
+			if err := json.Unmarshal(rpcInternalResponse.Result, &finalResponse); err != nil {
+				finalResponse.Error = &rpc.RpcError{
+					Code:        error_codes.GenericMappingError,
+					Message:     err.Error(),
+					Data:        nil,
+					Hostname:    u.baseWrapper.GetHostName(),
+					ServiceName: u.serviceName,
+				}
+			}
+		}
+
+		resChan <- finalResponse
+	}()
+
+	return resChan
 }

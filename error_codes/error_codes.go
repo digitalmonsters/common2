@@ -25,6 +25,7 @@ const (
 	UserHasNoPermissionToMethod ErrorCode = 601
 	Forbidden                   ErrorCode = 403
 	KYCRequiredError                      = ErrorCode(602)
+	RegistrationRequiredError             = ErrorCode(603)
 )
 
 const (
@@ -39,6 +40,12 @@ const (
 	AdminAuthPasswordsDoNotMatchError
 	AdminAuthInactiveError
 )
+
+const (
+	TokenomicsNotEnoughBalance ErrorCode = 1500
+)
+
+var TokenomicsNotEnoughBalanceError = errors.New("user doesn't have enough money to execute operation")
 
 type ErrorWithCode struct {
 	error error
