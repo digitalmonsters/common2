@@ -6,7 +6,8 @@ import (
 )
 
 type GetCommentsInfoByIdRequest struct {
-	CommentIds []int64 `json:"comment_ids"`
+	CommentIds     []int64 `json:"comment_ids"`
+	JoinParentInfo bool    `json:"join_parent_info"`
 }
 
 type GetCommentsInfoByIdResponseChan struct {

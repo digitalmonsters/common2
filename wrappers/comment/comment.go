@@ -14,7 +14,7 @@ import (
 )
 
 type ICommentWrapper interface {
-	GetCommentsInfoById(commentIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetCommentsInfoByIdResponseChan
+	GetCommentsInfoById(commentIds []int64, joinParentInfo bool, apmTransaction *apm.Transaction, forceLog bool) chan GetCommentsInfoByIdResponseChan
 }
 
 type CommentWrapper struct {
@@ -45,11 +45,12 @@ func NewCommentWrapper(config boilerplate.WrapperConfig) ICommentWrapper {
 	}
 }
 
-func (u CommentWrapper) GetCommentsInfoById(commentIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetCommentsInfoByIdResponseChan {
+func (u CommentWrapper) GetCommentsInfoById(commentIds []int64, joinParentInfo bool, apmTransaction *apm.Transaction, forceLog bool) chan GetCommentsInfoByIdResponseChan {
 	respCh := make(chan GetCommentsInfoByIdResponseChan, 2)
 
 	respChan := u.baseWrapper.SendRpcRequest(u.apiUrl, "GetCommentsInfoById", GetCommentsInfoByIdRequest{
-		CommentIds: commentIds,
+		CommentIds:     commentIds,
+		JoinParentInfo: joinParentInfo,
 	}, map[string]string{}, u.defaultTimeout, apmTransaction, u.serviceName, forceLog)
 
 	go func() {
