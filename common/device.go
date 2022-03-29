@@ -11,10 +11,14 @@ const (
 type VerifiedByType string
 
 const (
-	VerifiedByTypeUnknown       = VerifiedByType("unknown")
-	VerifiedByTypeManual        = VerifiedByType("manual")
-	VerifiedByTypeCode          = VerifiedByType("code")
-	VerifiedByTypeCde           = VerifiedByType("cde")
-	VerifiedByTypeSharedContent = VerifiedByType("shared_content")
-	VerifiedByTypeUrlLink       = VerifiedByType("url_link")
+	VerifiedByTypeUnknown         = VerifiedByType("unknown")
+	VerifiedByTypeManual          = VerifiedByType("manual")
+	VerifiedByTypeCode            = VerifiedByType("code")
+	VerifiedByTypeCde             = VerifiedByType("cde")
+	VerifiedByTypeSharedContent   = VerifiedByType("shared_content")
+	VerifiedByTypeUrlLink         = VerifiedByType("url_link")
+	VerifiedByTypeUploadedContent = VerifiedByType("uploaded_content")
+	VerifiedByTypeEmailInvites    = VerifiedByType("email_invites")
+	VerifiedByTypeOther           = VerifiedByType("other")
+	VerifiedByTypeNone            = VerifiedByType("")
 )
