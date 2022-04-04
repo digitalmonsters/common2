@@ -54,6 +54,7 @@ type UserEvent struct {
 	Guest                  bool            `json:"guest"`
 	AppleUid               null.String     `json:"apple_uid"`
 	KycStatus              KycStatusType   `json:"kyc_status"`
+	Reason                 null.String     `json:"reason"`
 	BaseChangeEvent
 }
 
