@@ -7,6 +7,7 @@ import (
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
+	"github.com/digitalmonsters/go-common/router"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/patrickmn/go-cache"
@@ -352,7 +353,7 @@ func (w *UserGoWrapper) AuthGuest(deviceId string, apmTransaction *apm.Transacti
 			return
 		}
 
-		genericRestResponse := rpc.GenericRestResponse{}
+		genericRestResponse := router.GenericRestResponse{}
 
 		if len(rpcInternalResponse.Result) == 0 {
 			resChan <- AuthGuestResponseChan{}
