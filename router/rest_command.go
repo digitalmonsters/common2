@@ -72,13 +72,3 @@ func (r RestCommand) GetHttpMethod() string {
 func (r RestCommand) GetFn() CommandFunc {
 	return r.commandFn
 }
-
-type GenericRestResponse struct {
-	Data              interface{} `json:"data"`
-	Success           bool        `json:"success"`
-	Error             string      `json:"error,omitempty"`
-	Stack             string      `json:"stack,omitempty"`
-	Hostname          string      `json:"hostname"`
-	Code              int         `json:"code"`
-	ExecutionTimingMs int64       `json:"execution_timing"`
-}

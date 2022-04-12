@@ -277,7 +277,7 @@ func (r *HttpRouter) RegisterRestCmd(targetCmd *RestCommand) error {
 
 		var err error
 
-		var restResponse GenericRestResponse
+		var restResponse rpc.GenericRestResponse
 
 		restResponse.Success = true
 		restResponse.ExecutionTimingMs = rpcResponse.ExecutionTimingMs

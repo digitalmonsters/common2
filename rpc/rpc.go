@@ -53,6 +53,16 @@ type RpcError struct {
 	ServiceName string                 `json:"-"`
 }
 
+type GenericRestResponse struct {
+	Data              interface{} `json:"data"`
+	Success           bool        `json:"success"`
+	Error             string      `json:"error,omitempty"`
+	Stack             string      `json:"stack,omitempty"`
+	Hostname          string      `json:"hostname"`
+	Code              int         `json:"code"`
+	ExecutionTimingMs int64       `json:"execution_timing"`
+}
+
 func (r *RpcError) ToError() error {
 	var builder strings.Builder
 
