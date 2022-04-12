@@ -277,7 +277,7 @@ func (r *HttpRouter) RegisterRestCmd(targetCmd *RestCommand) error {
 
 		var err error
 
-		var restResponse GenericRestResponse
+		var restResponse genericRestResponse
 
 		restResponse.Success = true
 		restResponse.ExecutionTimingMs = rpcResponse.ExecutionTimingMs
@@ -490,7 +490,7 @@ func (r *HttpRouter) prepareRpcEndpoint(rpcEndpointPath string, endpoint IRpcEnd
 				apmTransaction.End()
 			}
 		}()
-
+		
 		defer func() {
 			r.setCors(ctx)
 		}()

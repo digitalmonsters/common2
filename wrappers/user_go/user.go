@@ -7,7 +7,6 @@ import (
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
-	"github.com/digitalmonsters/go-common/router"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/patrickmn/go-cache"
@@ -345,57 +344,23 @@ func (w *UserGoWrapper) AuthGuest(deviceId string, apmTransaction *apm.Transacti
 			"application/json",
 			"auth guest",
 			AuthGuestRequest{DeviceId: deviceId}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
-		if rpcInternalResponse.Error != nil {
-			resChan <- AuthGuestResponseChan{
-				Error: rpcInternalResponse.Error,
-			}
 
-			return
+		finalResponse := AuthGuestResponseChan{
+			Error: rpcInternalResponse.Error,
 		}
-
-		genericRestResponse := router.GenericRestResponse{}
-
-		if len(rpcInternalResponse.Result) == 0 {
-			resChan <- AuthGuestResponseChan{}
-
-			return
-		}
-
-		if err := json.Unmarshal(rpcInternalResponse.Result, &genericRestResponse); err != nil {
-			resChan <- AuthGuestResponseChan{
-				Error: &rpc.RpcError{
+		if len(rpcInternalResponse.Result) > 0 {
+			if err := json.Unmarshal(rpcInternalResponse.Result, &finalResponse); err != nil {
+				finalResponse.Error = &rpc.RpcError{
 					Code:        error_codes.GenericMappingError,
 					Message:     err.Error(),
 					Data:        nil,
 					Hostname:    w.baseWrapper.GetHostName(),
 					ServiceName: w.serviceName,
-				},
+				}
 			}
-
-			return
 		}
 
-		if len(genericRestResponse.Error) > 0 {
-			resChan <- AuthGuestResponseChan{
-				Error: &rpc.RpcError{
-					Code:        error_codes.GenericValidationError,
-					Message:     genericRestResponse.Error,
-					Data:        nil,
-					Hostname:    w.baseWrapper.GetHostName(),
-					ServiceName: w.serviceName,
-				},
-			}
-
-			return
-		}
-
-		finalResp := genericRestResponse.Data.(AuthGuestResp)
-
-		resChan <- AuthGuestResponseChan{
-			Data: &finalResp,
-		}
-
-		return
+		resChan <- finalResponse
 	}()
 
 	return resChan
