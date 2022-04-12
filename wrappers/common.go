@@ -443,31 +443,9 @@ func (b *BaseWrapper) GetRpcResponseFromAnyService(url string, request interface
 			return
 		}
 
-		unknownResponse := json.RawMessage{}
-		genericResponse := rpc.RpcResponseInternal{}
-
-		if err := json.Unmarshal(apiResponse.rawBodyResponse, &unknownResponse); err != nil {
-			apiResponse.forceLog = true
-			wrapped := errors.Wrapf(err, "remote server status code [%v] can not unmarshal to raw message",
-				apiResponse.statusCode)
-
-			genericResponse.Error = &rpc.RpcError{
-				Code:        error_codes.GenericMappingError,
-				Message:     wrapped.Error(),
-				Stack:       fmt.Sprintf("%+v", wrapped),
-				Data:        nil,
-				Hostname:    b.hostName,
-				ServiceName: externalServiceName,
-			}
-
-			responseCh <- genericResponse
-
-			return
+		responseCh <- rpc.RpcResponseInternal{
+			Result: apiResponse.rawBodyResponse,
 		}
-
-		genericResponse.Result = unknownResponse
-
-		responseCh <- genericResponse
 	}()
 
 	return responseCh
