@@ -38,7 +38,6 @@ type UserGoWrapper struct {
 	baseWrapper    *wrappers.BaseWrapper
 	defaultTimeout time.Duration
 	serviceApiUrl  string
-	publicApiUrl   string
 	serviceName    string
 	cache          *cache.Cache
 }
@@ -60,7 +59,6 @@ func NewUserGoWrapper(config boilerplate.WrapperConfig) IUserGoWrapper {
 		baseWrapper:    wrappers.GetBaseWrapper(),
 		defaultTimeout: timeout,
 		serviceApiUrl:  fmt.Sprintf("%v/rpc-service", common.StripSlashFromUrl(config.ApiUrl)),
-		publicApiUrl:   common.StripSlashFromUrl(config.ApiUrl),
 		serviceName:    "user-go",
 		cache:          cache.New(4*time.Minute, 5*time.Minute),
 	}
@@ -333,106 +331,125 @@ func (w UserGoWrapper) GetUsersTags(userIds []int64, apmTransaction *apm.Transac
 	return respCh
 }
 
-func (w *UserGoWrapper) AuthGuest(deviceId string, apmTransaction *apm.Transaction, forceLog bool) chan AuthGuestResponseChan {
-	resChan := make(chan AuthGuestResponseChan, 2)
+func (w UserGoWrapper) AuthGuest(deviceId string, apmTransaction *apm.Transaction, forceLog bool) chan AuthGuestResponseChan {
+	respCh := make(chan AuthGuestResponseChan, 2)
+
+	respChan := w.baseWrapper.SendRpcRequest(w.serviceApiUrl, "AuthGuestInternal", AuthGuestRequest{
+		DeviceId: deviceId,
+	}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 	go func() {
-		link := fmt.Sprintf("%v/auth/guest", w.publicApiUrl)
+		defer func() {
+			close(respCh)
+		}()
 
-		rpcInternalResponse := <-w.baseWrapper.SendRequestWithRpcResponseFromAnyService(link,
-			"POST",
-			"application/json",
-			"auth guest",
-			AuthGuestRequest{DeviceId: deviceId}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
+		resp := <-respChan
 
-		finalResponse := AuthGuestResponseChan{
-			Error: rpcInternalResponse.Error,
+		result := AuthGuestResponseChan{
+			Error: resp.Error,
 		}
-		if len(rpcInternalResponse.Result) > 0 {
-			if err := json.Unmarshal(rpcInternalResponse.Result, &finalResponse); err != nil {
-				finalResponse.Error = &rpc.RpcError{
+
+		if len(resp.Result) > 0 {
+			var data AuthGuestResp
+
+			if err := json.Unmarshal(resp.Result, &data); err != nil {
+				result.Error = &rpc.RpcError{
 					Code:        error_codes.GenericMappingError,
 					Message:     err.Error(),
 					Data:        nil,
 					Hostname:    w.baseWrapper.GetHostName(),
 					ServiceName: w.serviceName,
 				}
+			} else {
+				result.Data = &data
 			}
 		}
 
-		resChan <- finalResponse
+		respCh <- result
 	}()
 
-	return resChan
+	return respCh
 }
 
 func (w *UserGoWrapper) GetBlockList(userIds []int64, apmTransaction *apm.Transaction, forceLog bool) chan GetBlockListResponseChan {
-	resChan := make(chan GetBlockListResponseChan, 2)
+	respCh := make(chan GetBlockListResponseChan, 2)
+
+	respChan := w.baseWrapper.SendRpcRequest(w.serviceApiUrl, "GetBlockListBulkInternal", GetBlockListRequest{
+		UserIds: userIds,
+	}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 	go func() {
-		link := fmt.Sprintf("%v/mobile/v1/user/block_list", w.publicApiUrl)
+		defer func() {
+			close(respCh)
+		}()
 
-		rpcInternalResponse := <-w.baseWrapper.SendRequestWithRpcResponseFromAnyService(link,
-			"POST",
-			"application/json",
-			"block list",
-			GetBlockListRequest{UserIds: userIds}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
+		resp := <-respChan
 
-		finalResponse := GetBlockListResponseChan{
-			Error: rpcInternalResponse.Error,
+		result := GetBlockListResponseChan{
+			Error: resp.Error,
 		}
-		if len(rpcInternalResponse.Result) > 0 {
-			if err := json.Unmarshal(rpcInternalResponse.Result, &finalResponse); err != nil {
-				finalResponse.Error = &rpc.RpcError{
+
+		if len(resp.Result) > 0 {
+			var data = make(map[string][]int64)
+
+			if err := json.Unmarshal(resp.Result, &data); err != nil {
+				result.Error = &rpc.RpcError{
 					Code:        error_codes.GenericMappingError,
 					Message:     err.Error(),
 					Data:        nil,
 					Hostname:    w.baseWrapper.GetHostName(),
 					ServiceName: w.serviceName,
 				}
+			} else {
+				result.Data = data
 			}
 		}
 
-		resChan <- finalResponse
+		respCh <- result
 	}()
 
-	return resChan
+	return respCh
 }
 
 func (w *UserGoWrapper) GetUserBlock(blockedTo int64, blockedBy int64, apmTransaction *apm.Transaction, forceLog bool) chan GetUserBlockResponseChan {
-	resChan := make(chan GetUserBlockResponseChan, 2)
+	respCh := make(chan GetUserBlockResponseChan, 2)
+
+	respChan := w.baseWrapper.SendRpcRequest(w.serviceApiUrl, "GetBlockRelations", GetUserBlockRequest{
+		BlockBy:   blockedBy,
+		BlockedTo: blockedTo,
+	}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 	go func() {
-		link := fmt.Sprintf("%v/mobile/v1/user/block_relations", w.publicApiUrl)
+		defer func() {
+			close(respCh)
+		}()
 
-		rpcInternalResponse := <-w.baseWrapper.SendRequestWithRpcResponseFromAnyService(link,
-			"POST",
-			"application/json",
-			"block relations",
-			GetUserBlockRequest{
-				BlockBy:   blockedBy,
-				BlockedTo: blockedTo,
-			}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
+		resp := <-respChan
 
-		finalResponse := GetUserBlockResponseChan{
-			Error: rpcInternalResponse.Error,
+		result := GetUserBlockResponseChan{
+			Error: resp.Error,
 		}
-		if len(rpcInternalResponse.Result) > 0 {
-			if err := json.Unmarshal(rpcInternalResponse.Result, &finalResponse); err != nil {
-				finalResponse.Error = &rpc.RpcError{
+
+		if len(resp.Result) > 0 {
+			var data UserBlockData
+
+			if err := json.Unmarshal(resp.Result, &data); err != nil {
+				result.Error = &rpc.RpcError{
 					Code:        error_codes.GenericMappingError,
 					Message:     err.Error(),
 					Data:        nil,
 					Hostname:    w.baseWrapper.GetHostName(),
 					ServiceName: w.serviceName,
 				}
+			} else {
+				result.Data = data
 			}
 		}
 
-		resChan <- finalResponse
+		respCh <- result
 	}()
 
-	return resChan
+	return respCh
 }
 
 func (w UserGoWrapper) UpdateUserMetadataAfterRegistration(request UpdateUserMetaDataRequest, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[UserRecord] {
