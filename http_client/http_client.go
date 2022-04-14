@@ -152,7 +152,7 @@ func sendHttpRequestAsync(ctx context.Context, url string, methodName string, co
 			}
 		}
 
-		apm_helper.AddDataToSpanTrance(span, req, apmTransaction)
+		apm_helper.AddDataToSpanTrance(span, req, ctx)
 
 		if allowedRedirects {
 			err = defaultClient.DoRedirects(req, resp, maxRedirectCount)

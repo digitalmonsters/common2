@@ -142,7 +142,7 @@ func AddSpanApmLabel(span *apm.Span, key string, value string) {
 	}
 }
 
-func AddApmDataWithContext(ctx context.Context, key string, value string) {
+func AddApmDataWithContext(ctx context.Context, key string, value interface{}) {
 	AddApmData(apm.TransactionFromContext(ctx), key, value)
 }
 
