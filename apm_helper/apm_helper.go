@@ -7,8 +7,8 @@ import (
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
+	"go.elastic.co/apm/module/apmhttp/v2"
+	"go.elastic.co/apm/v2"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,7 +25,7 @@ func StartNewApmTransaction(methodName string, transactionType string, request i
 		traceContext = parentTx.TraceContext()
 	}
 
-	transaction := apm.DefaultTracer.StartTransactionOptions(methodName, transactionType,
+	transaction := apm.DefaultTracer().StartTransactionOptions(methodName, transactionType,
 		apm.TransactionOptions{
 			TraceContext: traceContext,
 			Start:        time.Now(),
@@ -39,7 +39,7 @@ func StartNewApmTransaction(methodName string, transactionType string, request i
 }
 
 func StartNewApmTransactionWithTraceData(methodName string, transactionType string, request interface{}, parentCtx apm.TraceContext) *apm.Transaction {
-	transaction := apm.DefaultTracer.StartTransactionOptions(methodName, transactionType,
+	transaction := apm.DefaultTracer().StartTransactionOptions(methodName, transactionType,
 		apm.TransactionOptions{
 			TraceContext: parentCtx,
 			Start:        time.Now(),
@@ -199,7 +199,7 @@ func AddDataToSpanTrance(rqSpan *apm.Span, req *fasthttp.Request, ctx context.Co
 
 		req.Header.Set(apmhttp.W3CTraceparentHeader, apmhttp.FormatTraceparentHeader(rqSpan.TraceContext()))
 
-		rqSpan.Context.SetTag("path", string(req.URI().Path()))
-		rqSpan.Context.SetTag("full_url", string(req.URI().FullURI()))
+		rqSpan.Context.SetLabel("path", string(req.URI().Path()))
+		rqSpan.Context.SetLabel("full_url", string(req.URI().FullURI()))
 	}
 }

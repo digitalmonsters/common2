@@ -2,7 +2,7 @@ package content
 
 import (
 	"github.com/digitalmonsters/go-common/wrappers"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"gopkg.in/guregu/null.v4"
 )
 

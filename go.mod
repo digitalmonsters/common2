@@ -31,7 +31,9 @@ require (
 	go.elastic.co/apm v1.15.0
 	go.elastic.co/apm/module/apmgormv2 v1.15.0
 	go.elastic.co/apm/module/apmhttp v1.15.0
+	go.elastic.co/apm/module/apmhttp/v2 v2.0.0
 	go.elastic.co/apm/module/apmzerolog/v2 v2.0.0
+	go.elastic.co/apm/v2 v2.0.0
 	gopkg.in/guregu/null.v4 v4.0.0
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.4
@@ -89,7 +91,6 @@ require (
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.elastic.co/apm/module/apmsql v1.15.0 // indirect
-	go.elastic.co/apm/v2 v2.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect

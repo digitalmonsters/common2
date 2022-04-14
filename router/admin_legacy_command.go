@@ -7,7 +7,7 @@ import (
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/wrappers/auth_go"
 	"github.com/valyala/fasthttp"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"strings"
 )
 

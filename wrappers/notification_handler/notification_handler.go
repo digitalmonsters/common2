@@ -9,7 +9,7 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"strings"
 	"time"
 )

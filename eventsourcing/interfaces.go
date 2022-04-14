@@ -1,6 +1,6 @@
 package eventsourcing
 
-import "go.elastic.co/apm"
+import "go.elastic.co/apm/v2"
 
 type IEventData interface {
 	GetPublishKey() string

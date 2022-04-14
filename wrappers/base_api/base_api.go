@@ -10,7 +10,7 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"time"
 )
 

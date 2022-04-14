@@ -3,7 +3,7 @@ package auth_go
 import (
 	"github.com/digitalmonsters/go-common/eventsourcing"
 	"github.com/digitalmonsters/go-common/wrappers"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type AuthGoWrapperMock struct {

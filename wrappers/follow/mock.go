@@ -1,6 +1,6 @@
 package follow
 
-import "go.elastic.co/apm"
+import "go.elastic.co/apm/v2"
 
 //goland:noinspection GoNameStartsWithPackageName
 type FollowWrapperMock struct {

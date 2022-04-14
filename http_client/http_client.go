@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	urlPackage "net/url"
 	"time"
 )

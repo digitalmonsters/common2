@@ -10,7 +10,7 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"time"
 )
 

@@ -1,6 +1,6 @@
 package user_category
 
-import "go.elastic.co/apm"
+import "go.elastic.co/apm/v2"
 
 //goland:noinspection ALL
 type UserCategoryWrapperMock struct {

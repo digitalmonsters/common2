@@ -1,6 +1,6 @@
 package base_api
 
-import "go.elastic.co/apm"
+import "go.elastic.co/apm/v2"
 
 //goland:noinspection ALL
 type BaseApiWrapperMock struct {
@@ -14,4 +14,3 @@ func (m *BaseApiWrapperMock) GetCountriesWithAgeLimit(apmTransaction *apm.Transa
 func GetMock() IBaseApiWrapper { // for compiler errors
 	return &BaseApiWrapperMock{}
 }
-

@@ -2,7 +2,7 @@ package notification_gateway
 
 import (
 	"context"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type NotificationGatewayWrapperMock struct {

@@ -1,7 +1,7 @@
 package comment
 
 import (
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type CommentWrapperMock struct {

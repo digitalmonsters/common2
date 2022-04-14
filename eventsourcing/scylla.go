@@ -6,7 +6,7 @@ import (
 	"github.com/gammazero/workerpool"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type ScyllaEventPublisher struct {

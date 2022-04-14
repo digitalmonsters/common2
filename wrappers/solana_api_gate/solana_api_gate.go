@@ -10,7 +10,7 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 	"time"
 )
 
@@ -60,7 +60,7 @@ func (w SolanaApiGateWrapper) TransferToken(from string, amount string, account 
 			Account: account,
 			Type:    recipientType,
 		},
-	},map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
+	}, map[string]string{}, w.defaultTimeout, apmTransaction, w.serviceName, forceLog)
 
 	go func() {
 		defer func() {
@@ -94,7 +94,6 @@ func (w SolanaApiGateWrapper) TransferToken(from string, amount string, account 
 
 	return respCh
 }
-
 
 func (w SolanaApiGateWrapper) CreateVesting(from string, to string, amounts string, timestamps string, apmTransaction *apm.Transaction, forceLog bool) chan CreateVestingResponseChan {
 	respCh := make(chan CreateVestingResponseChan, 2)

@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type AuthWrapperMock struct {

@@ -1,6 +1,6 @@
 package user_dislikes
 
-import "go.elastic.co/apm"
+import "go.elastic.co/apm/v2"
 
 //goland:noinspection ALL
 type UserDislikesWrapperMock struct {

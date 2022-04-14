@@ -1,7 +1,7 @@
 package admin_ws
 
 import (
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type AdminWsWrapperMock struct {

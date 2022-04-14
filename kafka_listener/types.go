@@ -3,7 +3,7 @@ package kafka_listener
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 type IKafkaListener interface {

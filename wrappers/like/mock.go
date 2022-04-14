@@ -2,7 +2,7 @@ package like
 
 import (
 	"github.com/digitalmonsters/go-common/wrappers"
-	"go.elastic.co/apm"
+	"go.elastic.co/apm/v2"
 )
 
 //goland:noinspection ALL
