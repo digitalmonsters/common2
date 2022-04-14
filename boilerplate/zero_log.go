@@ -11,13 +11,21 @@ import (
 	"time"
 )
 
+var isConfigured bool
+
 func SetupZeroLog() {
+	if isConfigured {
+		return
+	}
+
 	rand.Seed(time.Now().Unix())
 	log.Logger = zerolog.New(os.Stderr).With().Caller().
 		Time("time", time.Now().UTC()).Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true})
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	zerolog.DefaultContextLogger = &log.Logger
+
+	isConfigured = true
 }
 
 func CreateCustomContext(ctx context.Context, apmTx *apm.Transaction, logger zerolog.Logger) context.Context {

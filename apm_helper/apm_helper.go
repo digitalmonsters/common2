@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+func init() {
+	boilerplate.SetupZeroLog()
+}
+
 func StartNewApmTransaction(methodName string, transactionType string, request interface{}, parentTx *apm.Transaction) *apm.Transaction {
 	traceContext := apm.TraceContext{}
 
@@ -63,7 +67,7 @@ func AppendResponseBody(response interface{}, transaction *apm.Transaction) {
 	AddApmData(transaction, "response", response)
 }
 
-func CaptureApmError(err error, transaction *apm.Transaction) {
+func LogError(err error, ctx context.Context) {
 	if err == nil {
 		return
 	}
@@ -72,32 +76,10 @@ func CaptureApmError(err error, transaction *apm.Transaction) {
 		_ = recover()
 	}()
 
-	if transaction == nil || transaction.TransactionData == nil {
-		return
+	if captureErr := apm.CaptureError(ctx, err); captureErr != nil {
+		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Err(captureErr)
 	}
-
-	exx := apm.DefaultTracer.NewError(err)
-
-	AddApmData(transaction, "exception", err)
-
-	if exx != nil && transaction != nil {
-		exx.SetTransaction(transaction)
-		exx.Context = transaction.Context
-
-		exx.Send()
-	}
-}
-
-func CaptureApmErrorSpan(err error, span *apm.Span) {
-	if span == nil || span.Dropped() || span.SpanData == nil {
-		return
-	}
-
-	exx := apm.DefaultTracer.NewError(err)
-
-	exx.SetSpan(span)
-
-	exx.Send()
 }
 
 func AddApmLabel(transaction *apm.Transaction, key string, value interface{}) {
