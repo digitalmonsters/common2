@@ -469,7 +469,7 @@ func (k *kafkaListener) listen(maxBatchSize int, maxDuration time.Duration, read
 				cancelInnerCtx()
 			}()
 
-			innerContext = apm.ContextWithTransaction(innerContext, processingSpan)
+			innerContext = boilerplate.CreateCustomContext(innerContext, processingSpan, log.Logger)
 
 			successfullyProcessedMessages = k.command.Execute(ExecutionData{
 				ApmTransaction: processingSpan,

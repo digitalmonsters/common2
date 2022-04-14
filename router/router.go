@@ -1,7 +1,6 @@
 package router
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/digitalmonsters/go-common/apm_helper"
@@ -342,10 +341,7 @@ func (r *HttpRouter) executeAction(rpcRequest rpc.RpcRequest, cmd ICommand, ctx 
 	apmTransaction *apm.Transaction, forceLog bool, getUserValue func(key string) interface{}) (rpcResponse rpc.RpcResponse, shouldLog bool) {
 	totalTiming := time.Now()
 
-	newCtx, cancel := context.WithCancel(ctx)
-	newCtx = apm.ContextWithTransaction(newCtx, apmTransaction)
-
-	defer cancel()
+	newCtx := boilerplate.CreateCustomContext(ctx, apmTransaction, log.Logger)
 
 	r.logRequestHeaders(ctx, apmTransaction) // in future filter for specific routes
 	r.logUserValues(ctx, apmTransaction)

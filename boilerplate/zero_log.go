@@ -1,8 +1,11 @@
 package boilerplate
 
 import (
+	"context"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmzerolog/v2"
 	"math/rand"
 	"os"
 	"time"
@@ -10,6 +13,20 @@ import (
 
 func SetupZeroLog() {
 	rand.Seed(time.Now().Unix())
-	log.Logger = zerolog.New(os.Stderr).With().Caller().Time("time", time.Now().UTC()).Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true})
+	log.Logger = zerolog.New(os.Stderr).With().Caller().
+		Time("time", time.Now().UTC()).Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true})
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
+	zerolog.DefaultContextLogger = &log.Logger
+}
+
+func CreateCustomContext(ctx context.Context, apmTx *apm.Transaction, logger zerolog.Logger) context.Context {
+	if apmTx != nil {
+		ctx = apm.ContextWithTransaction(ctx, apmTx)
+		logger = logger.Hook(apmzerolog.TraceContextHook(ctx))
+	}
+
+	ctx = logger.WithContext(ctx)
+
+	return ctx
 }
