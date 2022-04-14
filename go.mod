@@ -7,11 +7,11 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cenkalti/backoff/v4 v4.1.2
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fasthttp/router v1.4.4
+	github.com/fasthttp/router v1.4.8
 	github.com/gammazero/workerpool v1.1.2
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/gocql/gocql v0.0.0-20211222173705-d73e6b1002a7
-	github.com/jackc/pgx/v4 v4.14.1
+	github.com/jackc/pgx/v4 v4.15.0
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/lib/pq v1.10.2
 	github.com/mitchellh/mapstructure v1.4.3
@@ -27,16 +27,14 @@ require (
 	github.com/skynet2/go-config v1.0.0
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.9.1
-	github.com/valyala/fasthttp v1.31.0
-	go.elastic.co/apm v1.15.0
-	go.elastic.co/apm/module/apmgormv2 v1.15.0
-	go.elastic.co/apm/module/apmhttp v1.15.0
+	github.com/valyala/fasthttp v1.35.0
+	go.elastic.co/apm/module/apmgormv2/v2 v2.0.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.0.0
 	go.elastic.co/apm/module/apmzerolog/v2 v2.0.0
 	go.elastic.co/apm/v2 v2.0.0
 	gopkg.in/guregu/null.v4 v4.0.0
-	gorm.io/driver/postgres v1.2.3
-	gorm.io/gorm v1.22.4
+	gorm.io/driver/postgres v1.3.4
+	gorm.io/gorm v1.23.4
 )
 
 require (
@@ -58,18 +56,18 @@ require (
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.1 // indirect
+	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.9.1 // indirect
+	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
-	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
@@ -82,7 +80,7 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/romanyx/jwalk v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
-	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
+	github.com/savsgio/gotils v0.0.0-20220401102855-e56b59f40436 // indirect
 	github.com/scylladb/go-reflectx v1.0.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
@@ -90,12 +88,11 @@ require (
 	github.com/xdg/scram v1.0.3 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.elastic.co/apm/module/apmsql v1.15.0 // indirect
+	go.elastic.co/apm/module/apmsql/v2 v2.0.0 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

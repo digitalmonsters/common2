@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	postgres "go.elastic.co/apm/module/apmgormv2/driver/postgres"
+	postgres "go.elastic.co/apm/module/apmgormv2/v2/driver/postgres"
 	"gorm.io/gorm"
 	"time"
 )
