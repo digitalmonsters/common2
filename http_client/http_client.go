@@ -4,184 +4,160 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/digitalmonsters/go-common/apm_helper"
-	"github.com/digitalmonsters/go-common/common"
-	"github.com/pkg/errors"
+	"github.com/imroc/req/v3"
 	"github.com/rs/zerolog/log"
-	"github.com/valyala/fasthttp"
 	"go.elastic.co/apm"
-	urlPackage "net/url"
+	"io/ioutil"
 	"time"
 )
 
-var defaultClient = fasthttp.Client{}
-
-type HttpResult struct {
-	rawRequest  []byte
-	rawResponse []byte
-	error       error
-	forceLog    bool
-	statusCode  int
+type HttpClient struct {
+	cl                *req.Client
+	targetServiceName string
 }
 
-func (h HttpResult) GetRawRequest() []byte {
-	return h.rawRequest
+type HttpRequest struct {
+	*req.Request
 }
 
-func (h HttpResult) GetRawResponse() []byte {
-	return h.rawResponse
+type AsyncChan struct {
+	Resp *req.Response
+	Err  error
 }
 
-func (h HttpResult) GetError() error {
-	return h.error
+var DefaultHttpClient = NewHttpClient()
+
+type forceLogKey struct {
 }
 
-func (h HttpResult) GetStatusCode() int {
-	return h.statusCode
-}
+func NewHttpClient() *HttpClient {
+	client := req.C().SetTimeout(30 * time.Second)
 
-func endRpcSpan(rawBodyRequest []byte, rawBodyResponse []byte,
-	rqSpan *apm.Span, forceLog bool, host string) {
-	if rqSpan == nil {
-		return
+	h := &HttpClient{
+		cl: client,
 	}
 
-	shouldLog := forceLog
+	client.OnBeforeRequest(func(client *req.Client, request *req.Request) error {
+		if parentApm := apm.TransactionFromContext(request.Context()); parentApm != nil {
+			targetServiceName := h.targetServiceName
 
-	finalStatement := ""
+			if len(targetServiceName) == 0 {
+				targetServiceName = request.URL.Hostname()
+			}
+			span := parentApm.StartSpan(fmt.Sprintf("HTTP [%v] [%v]", request.RawRequest.Method, request.RawURL),
+				targetServiceName, nil)
 
-	if shouldLog && rqSpan != nil {
-		if data, err := json.Marshal(map[string]interface{}{
-			"request":  rawBodyRequest,
-			"response": rawBodyResponse,
-		}); err != nil {
-			log.Err(err).Send()
-
-			finalStatement = fmt.Sprintf("request [%v] || response [%v]", rawBodyRequest, rawBodyResponse)
-		} else {
-			finalStatement = string(data)
+			request.SetContext(apm.ContextWithSpan(request.Context(), span))
 		}
-	}
 
-	rqSpan.Context.SetDatabase(apm.DatabaseSpanContext{
-		Instance:  host,
-		Type:      host,
-		Statement: finalStatement,
+		return nil
 	})
 
-	rqSpan.End()
-}
+	client.OnAfterResponse(func(client *req.Client, response *req.Response) error {
+		forceLog, _ := response.Request.Context().Value(forceLogKey{}).(bool)
 
-func SendHttpRequestAsync(ctx context.Context, url string, methodName string, contentType string, httpMethod string,
-	request interface{}, headers map[string]string, forceLog bool, timeout time.Duration) chan HttpResult {
-	return sendHttpRequestAsync(ctx, url, methodName, contentType, httpMethod, request, headers, forceLog, timeout, false, 0)
-}
-
-func SendHttpRequestAsyncWithRedirects(ctx context.Context, url string, methodName string, contentType string, httpMethod string,
-	request interface{}, headers map[string]string, forceLog bool, timeout time.Duration, maxRedirectCount int) chan HttpResult {
-	return sendHttpRequestAsync(ctx, url, methodName, contentType, httpMethod, request, headers, forceLog, timeout, true, maxRedirectCount)
-}
-
-func sendHttpRequestAsync(ctx context.Context, url string, methodName string, contentType string, httpMethod string,
-	request interface{}, headers map[string]string, forceLog bool, timeout time.Duration, allowedRedirects bool, maxRedirectCount int) chan HttpResult {
-	ch := make(chan HttpResult, 2)
-
-	go func() {
-		result := HttpResult{
-			forceLog: forceLog,
+		if response.IsError() {
+			forceLog = true
 		}
 
-		pasedUrl, err := urlPackage.Parse(url)
+		ctx := response.Request.Context()
 
-		if err != nil {
-			result.error = errors.WithStack(err)
-			return
-		}
+		if span := apm.SpanFromContext(ctx); span != nil {
+			finalStatement := ""
 
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+			if forceLog {
+				var rawBodyRequest []byte
+				var rawBodyResponse []byte
 
-		apmTransaction := apm.TransactionFromContext(ctx)
+				if r, err := ioutil.ReadAll(response.Request.RawRequest.Body); err != nil {
+					log.Ctx(ctx).Err(err).Send()
+				} else {
+					rawBodyRequest = r
+				}
 
-		var span *apm.Span
+				if r, err := ioutil.ReadAll(response.Response.Body); err != nil {
+					log.Ctx(ctx).Err(err).Send()
+				} else {
+					rawBodyResponse = r
+				}
 
-		if apmTransaction != nil {
-			span = apmTransaction.StartSpan(fmt.Sprintf("HTTP [%v] [%v]", url, methodName),
-				"rpc_internal", nil)
+				if data, err := json.Marshal(map[string]interface{}{
+					"request":  rawBodyRequest,
+					"response": rawBodyResponse,
+				}); err != nil {
+					log.Ctx(ctx).Err(err).Send()
 
-			ctx = apm.ContextWithSpan(ctx, span)
-		}
-
-		defer func() {
-			cancel()
-			ch <- result
-
-			if span != nil {
-				span.Context.SetHTTPStatusCode(result.statusCode)
-				endRpcSpan(result.rawRequest, result.rawResponse, span,
-					result.forceLog, pasedUrl.Hostname())
+					finalStatement = fmt.Sprintf("request [%v] || response [%v]", rawBodyRequest, rawBodyResponse)
+				} else {
+					finalStatement = string(data)
+				}
 			}
 
+			span.Context.SetDatabase(apm.DatabaseSpanContext{
+				Instance:  response.Request.URL.Hostname(),
+				Type:      response.Request.URL.Hostname(),
+				Statement: finalStatement,
+			})
+
+			span.End()
+		}
+		return nil
+	})
+
+	return h
+}
+
+func (h *HttpClient) WithServiceName(serviceName string) *HttpClient {
+	h.targetServiceName = serviceName
+
+	return h
+}
+
+func (h *HttpClient) WithTimeout(duration time.Duration) *HttpClient {
+	h.cl.SetTimeout(duration)
+
+	return h
+}
+
+func (h HttpClient) NewRequest(ctx context.Context) *HttpRequest {
+	return &HttpRequest{h.cl.R().SetContext(ctx)}
+}
+
+func (h HttpClient) NewRequestWithTimeout(ctx context.Context, timeout time.Duration) *HttpRequest {
+	return &HttpRequest{h.cl.Clone().SetTimeout(timeout).R().SetContext(ctx)}
+}
+
+func (r *HttpRequest) WithForceLog() *HttpRequest {
+	r.SetContext(context.WithValue(r.Context(), forceLogKey{}, true))
+
+	return r
+}
+
+func (r *HttpRequest) GetAsync(url string) chan AsyncChan {
+	return r.doAsync(func() (*req.Response, error) {
+		return r.Get(url)
+	})
+}
+
+func (r *HttpRequest) PostAsync(url string) chan AsyncChan {
+	return r.doAsync(func() (*req.Response, error) {
+		return r.Post(url)
+	})
+}
+
+func (r HttpRequest) doAsync(fn func() (*req.Response, error)) chan AsyncChan {
+	ch := make(chan AsyncChan, 2)
+
+	go func() {
+		defer func() {
 			close(ch)
 		}()
 
-		req := fasthttp.AcquireRequest()
-		defer fasthttp.ReleaseRequest(req)
-		resp := fasthttp.AcquireResponse()
-		defer fasthttp.ReleaseResponse(resp)
+		r, e := fn()
 
-		req.SetRequestURI(url)
-		req.Header.SetMethod(httpMethod)
-		req.Header.Set("Accept-Encoding", fmt.Sprintf("%s,%s,%s", common.ContentEncodingBrotli,
-			common.ContentEncodingGzip, common.ContentEncodingDeflate))
-		req.Header.SetContentType(contentType)
-
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
-
-		if request != nil {
-			if data, err := json.Marshal(request); err != nil {
-				result.error = errors.WithStack(err)
-				result.forceLog = true
-
-				return
-			} else {
-				result.rawRequest = data
-
-				req.SetBodyRaw(result.rawRequest)
-			}
-		}
-
-		apm_helper.AddDataToSpanTrance(span, req, apmTransaction)
-
-		if allowedRedirects {
-			err = defaultClient.DoRedirects(req, resp, maxRedirectCount)
-		} else {
-			err = defaultClient.DoTimeout(req, resp, timeout)
-		}
-		result.statusCode = resp.StatusCode()
-
-		rawBodyResponse, err2 := common.UnpackFastHttpBody(resp)
-
-		if err2 != nil {
-			result.forceLog = true
-
-			if err := apm.CaptureError(ctx, err); err != nil {
-				log.Err(err).Send()
-			}
-		}
-
-		result.rawResponse = rawBodyResponse
-
-		if err != nil {
-			result.forceLog = true
-
-			result.error = errors.Wrap(err, fmt.Sprintf("error during sending request to [%v]. Err: [%v]. StatusCode: [%v]",
-				url,
-				err.Error(),
-				resp.StatusCode()))
-
-			return
+		ch <- AsyncChan{
+			Resp: r,
+			Err:  e,
 		}
 	}()
 
