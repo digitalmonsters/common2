@@ -560,6 +560,8 @@ func (r *HttpRouter) prepareRpcEndpoint(rpcEndpointPath string, endpoint IRpcEnd
 			return
 		}
 
+		apmTransaction.Name = rpcRequest.Method
+
 		cmd, err := endpoint.GetCommand(rpcRequest.Method)
 
 		if err != nil {
