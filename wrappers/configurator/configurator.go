@@ -12,7 +12,7 @@ import (
 
 type IConfiguratorWrapper interface {
 	GetFeatureFlags(apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig]
-	CreateFeatureFlagEvents(events []interface{}, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
+	CreateFeatureFlagEvents(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
 }
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -28,7 +28,7 @@ func (c *ConfiguratorWrapper) GetFeatureFlags(apmTransaction *apm.Transaction, f
 		apmTransaction, c.serviceName, forceLog)
 }
 
-func (c *ConfiguratorWrapper) CreateFeatureFlagEvents(events []interface{}, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
+func (c *ConfiguratorWrapper) CreateFeatureFlagEvents(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
 	return wrappers.ExecuteRpcRequestAsync[map[string]interface{}](c.baseWrapper, c.apiUrl, "InternalCreateFeatureToggleEvent", CreateFeatureToggleEventsRequest{Events: events},
 		map[string]string{}, c.defaultTimeout, apmTransaction, c.serviceName, forceLog)
 }

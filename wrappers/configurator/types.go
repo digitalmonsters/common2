@@ -55,5 +55,16 @@ func (c *FeatureToggleConfig) Value() (driver.Value, error) {
 }
 
 type CreateFeatureToggleEventsRequest struct {
-	Events []interface{} `json:"events"`
+	Events []FeatureEvent `json:"events"`
+}
+type FeatureEvent struct {
+	Kind         string      `json:"kind"`
+	ContextKind  string      `json:"context_kind"`
+	UserKey      string      `json:"user_key"`
+	CreationDate int64       `json:"creation_date"`
+	Key          string      `json:"key"`
+	Variation    string      `json:"variation"`
+	Value        interface{} `json:"value"`
+	Default      bool        `json:"default"`
+	Version      float64     `json:"version"`
 }
