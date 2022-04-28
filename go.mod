@@ -12,6 +12,7 @@ require (
 	github.com/gammazero/workerpool v1.1.2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gocql/gocql v1.0.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imroc/req/v3 v3.10.0
 	github.com/jackc/pgx/v4 v4.16.0
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
@@ -29,6 +30,7 @@ require (
 	github.com/skynet2/go-config v1.0.0
 	github.com/stretchr/testify v1.7.1
 	github.com/thoas/go-funk v0.9.2
+	github.com/thomaspoignant/go-feature-flag v0.21.0
 	github.com/valyala/fasthttp v1.35.0
 	go.elastic.co/apm v1.15.0
 	go.elastic.co/apm/module/apmgormv2 v1.15.0
@@ -44,11 +46,14 @@ require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/pubsub v1.20.0 // indirect
+	cloud.google.com/go/storage v1.22.0 // indirect
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/antlr/antlr4 v0.0.0-20201206235148-c87e55b61113 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -68,9 +73,9 @@ require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.3.0 // indirect
+	github.com/googleapis/go-type-adapters v1.0.0 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.0 // indirect
@@ -90,7 +95,9 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20220326011226-f1430873d8db // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/nikunjy/rules v0.0.0-20200120082459-0b7c4dc9dc86 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
+	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
