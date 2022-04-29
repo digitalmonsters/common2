@@ -64,7 +64,15 @@ type FeatureEvent struct {
 	CreationDate int64       `json:"creation_date"`
 	Key          string      `json:"key"`
 	Variation    string      `json:"variation"`
-	Value        interface{} `json:"value"`
+	Val          interface{} `json:"value"`
 	Default      bool        `json:"default"`
 	Version      float64     `json:"version"`
+}
+
+func (f *FeatureEvent) Scan(input interface{}) error {
+	return json.Unmarshal(input.([]byte), f)
+}
+
+func (f *FeatureEvent) Value() (driver.Value, error) {
+	return json.Marshal(f)
 }

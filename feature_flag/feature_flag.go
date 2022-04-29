@@ -1,4 +1,4 @@
-package boilerplate
+package feature_flag
 
 import (
 	"context"
@@ -69,7 +69,7 @@ func (f *FlagsExporter) Export(ctx context.Context, logger *log.Logger, featureE
 			CreationDate: ev.CreationDate,
 			Key:          ev.Key,
 			Variation:    ev.Variation,
-			Value:        ev.Value,
+			Val:          ev.Value,
 			Default:      ev.Default,
 			Version:      ev.Version,
 		})
