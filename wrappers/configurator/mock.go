@@ -1,19 +1,19 @@
 package configurator
 
 import (
+	"context"
 	"github.com/digitalmonsters/go-common/wrappers"
-	"go.elastic.co/apm"
 )
 
 type ConfiguratorWrapperMock struct {
-	GetFeatureFlagsFn         func(apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig]
-	CreateFeatureFlagEventsFn func(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
+	GetFeatureFlagsFn         func(ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig]
+	CreateFeatureFlagEventsFn func(ctx context.Context, events []FeatureEvent, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
 }
 
-func (m *ConfiguratorWrapperMock) GetFeatureFlags(apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig] {
-	return m.GetFeatureFlagsFn(apmTransaction, forceLog)
+func (m *ConfiguratorWrapperMock) GetFeatureFlags(ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig] {
+	return m.GetFeatureFlagsFn(ctx, forceLog)
 }
 
-func (m *ConfiguratorWrapperMock) CreateFeatureFlagEvents(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
-	return m.CreateFeatureFlagEventsFn(events, apmTransaction, forceLog)
+func (m *ConfiguratorWrapperMock) CreateFeatureFlagEvents(ctx context.Context, events []FeatureEvent, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
+	return m.CreateFeatureFlagEventsFn(ctx, events, forceLog)
 }

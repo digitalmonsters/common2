@@ -1,6 +1,7 @@
 package configurator
 
 import (
+	"context"
 	"fmt"
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
@@ -11,8 +12,8 @@ import (
 )
 
 type IConfiguratorWrapper interface {
-	GetFeatureFlags(apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig]
-	CreateFeatureFlagEvents(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
+	GetFeatureFlags(ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig]
+	CreateFeatureFlagEvents(ctx context.Context, events []FeatureEvent, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}]
 }
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -23,14 +24,14 @@ type ConfiguratorWrapper struct {
 	serviceName    string
 }
 
-func (c *ConfiguratorWrapper) GetFeatureFlags(apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig] {
+func (c *ConfiguratorWrapper) GetFeatureFlags(ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[map[string]FeatureToggleConfig] {
 	return wrappers.ExecuteRpcRequestAsync[map[string]FeatureToggleConfig](c.baseWrapper, c.apiUrl, "InternalGetFeatureToggles", nil, map[string]string{}, c.defaultTimeout,
-		apmTransaction, c.serviceName, forceLog)
+		apm.TransactionFromContext(ctx), c.serviceName, forceLog)
 }
 
-func (c *ConfiguratorWrapper) CreateFeatureFlagEvents(events []FeatureEvent, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
+func (c *ConfiguratorWrapper) CreateFeatureFlagEvents(ctx context.Context, events []FeatureEvent, forceLog bool) chan wrappers.GenericResponseChan[map[string]interface{}] {
 	return wrappers.ExecuteRpcRequestAsync[map[string]interface{}](c.baseWrapper, c.apiUrl, "InternalCreateFeatureToggleEvent", CreateFeatureToggleEventsRequest{Events: events},
-		map[string]string{}, c.defaultTimeout, apmTransaction, c.serviceName, forceLog)
+		map[string]string{}, c.defaultTimeout, apm.TransactionFromContext(ctx), c.serviceName, forceLog)
 }
 
 func NewConfiguratorWrapper(config boilerplate.WrapperConfig) IConfiguratorWrapper {

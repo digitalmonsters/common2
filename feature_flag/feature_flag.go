@@ -6,7 +6,6 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers/configurator"
 	ffclient "github.com/thomaspoignant/go-feature-flag"
 	"github.com/thomaspoignant/go-feature-flag/ffexporter"
-	"go.elastic.co/apm"
 	"log"
 	"time"
 )
@@ -40,7 +39,7 @@ func NewHttpFlagsRetriever(wrapper configurator.IConfiguratorWrapper) *HttpFlags
 }
 
 func (r *HttpFlagsRetriever) Retrieve(ctx context.Context) ([]byte, error) {
-	res := <-r.wrapper.GetFeatureFlags(apm.TransactionFromContext(ctx), false)
+	res := <-r.wrapper.GetFeatureFlags(ctx, false)
 	if res.Error != nil {
 		return nil, res.Error.ToError()
 	}
@@ -74,7 +73,7 @@ func (f *FlagsExporter) Export(ctx context.Context, logger *log.Logger, featureE
 			Version:      ev.Version,
 		})
 	}
-	res := <-f.wrapper.CreateFeatureFlagEvents(mappedEvents, apm.TransactionFromContext(ctx), false)
+	res := <-f.wrapper.CreateFeatureFlagEvents(ctx, mappedEvents, false)
 	if res.Error != nil {
 		return res.Error.ToError()
 	}
