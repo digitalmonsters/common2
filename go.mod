@@ -2,6 +2,8 @@ module github.com/digitalmonsters/go-common
 
 go 1.18
 
+replace github.com/segmentio/kafka-go v0.4.31 => github.com/skynet2/kafka-go v0.5.32
+
 require (
 	github.com/RichardKnop/machinery v1.10.6
 	github.com/aws/aws-sdk-go v1.43.44
@@ -138,6 +140,6 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
 	howett.net/plist v1.0.0 // indirect
 )

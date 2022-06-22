@@ -1,5 +1,15 @@
 package kafka_listener
 
+import (
+	"context"
+	"fmt"
+	"github.com/digitalmonsters/go-common/boilerplate"
+	"github.com/segmentio/kafka-go"
+	"runtime"
+	"testing"
+	"time"
+)
+
 // todo later
 //
 //import (
@@ -163,3 +173,42 @@ package kafka_listener
 //
 //	return messages
 //}
+
+func TestListener(t *testing.T) {
+	l := NewBatchListener(boilerplate.KafkaListenerConfiguration{
+		Hosts:                           "b-1.content.nnwm8k.c4.kafka.eu-west-1.amazonaws.com:9094",
+		Topic:                           "qa.content",
+		GroupId:                         "ggg1",
+		KafkaAuth:                       nil,
+		MinBytes:                        0,
+		MaxBytes:                        0,
+		Tls:                             true,
+		MaxBackOffTimeMilliseconds:      0,
+		BackOffTimeIntervalMilliseconds: 0,
+	}, NewCommand("asda", func(executionData ExecutionData, request ...kafka.Message) []kafka.Message {
+		return request
+	}, false), context.TODO(), 100*time.Second,
+		5000)
+
+	l.ListenAsync()
+
+	go func() {
+		for {
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+
+			fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
+			fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+			fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+			fmt.Printf("\tNumGC = %v\n", m.NumGC)
+
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	time.Sleep(5 * time.Hour)
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
