@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -12,7 +14,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"time"
 )
 
 type KafkaEventPublisher struct {
@@ -55,7 +56,7 @@ func NewKafkaEventPublisher(cfg boilerplate.KafkaWriterConfiguration, topicConfi
 		}
 	}
 
-	h.ensureTopicExists(topicConfig)
+	//h.ensureTopicExists(topicConfig)
 
 	return h
 }
