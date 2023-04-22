@@ -3,11 +3,12 @@ package boilerplate
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmzerolog"
-	"strings"
 )
 
 var isConfigured bool
@@ -17,7 +18,7 @@ func SetupZeroLog() {
 		return
 	}
 
-	zerolog.CallerMarshalFunc = func(file string, line int) string {
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
 		sp := strings.Split(file, "/")
 
 		segments := 4
