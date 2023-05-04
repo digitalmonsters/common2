@@ -5,6 +5,7 @@ import (
 	"github.com/digitalmonsters/go-common/filters"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/shopspring/decimal"
+	"gopkg.in/guregu/null.v4"
 )
 
 type GetUsersTokenomicsInfoRequest struct {
@@ -225,4 +226,14 @@ type WriteOffUserTokensForAdRequest struct {
 	UserId       int64           `json:"user_id"`
 	AdCampaignId int64           `json:"ad_campaign_id"`
 	Amount       decimal.Decimal `json:"amount"`
+}
+
+type GetLeaderBoardTopPointsByPeriodRequest struct {
+	TimeFrom null.Time `json:"time_from"`
+	TimeTo   null.Time `json:"time_to"`
+}
+
+type GetLeaderBoardTopPointsByPeriodResp struct {
+	UserId       null.Int `json:"user_id"`
+	AmountPoints float64  `json:"amount_points"`
 }
