@@ -6,6 +6,7 @@ import (
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/shopspring/decimal"
 	"go.elastic.co/apm"
+	"gopkg.in/guregu/null.v4"
 )
 
 type GoTokenomicsWrapperMock struct {
@@ -18,6 +19,7 @@ type GoTokenomicsWrapperMock struct {
 	GetActivitiesInfoFn                   func(userId int64, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[GetActivitiesInfoResponse]
 	CreateBotViewsFn                      func(botViews map[int64][]int64, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
 	WriteOffUserTokensForAdFn             func(userId int64, adCampaignId int64, amount decimal.Decimal, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
+	GetLeaderBoardTopPointsByPeriodFn     func(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
 }
 
 func (w *GoTokenomicsWrapperMock) GetUsersTokenomicsInfo(userIds []int64, filters []filters.Filter, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[map[int64]UserTokenomicsInfo] {
@@ -52,6 +54,10 @@ func (w *GoTokenomicsWrapperMock) CreateBotViews(botViews map[int64][]int64, ctx
 
 func (w *GoTokenomicsWrapperMock) WriteOffUserTokensForAd(userId int64, adCampaignId int64, amount decimal.Decimal, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any] {
 	return w.WriteOffUserTokensForAdFn(userId, adCampaignId, amount, ctx, forceLog)
+}
+
+func (w *GoTokenomicsWrapperMock) GetLeaderBoardTopPointsByPeriod(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any] {
+	return w.GetLeaderBoardTopPointsByPeriodFn(timeFrom, timeTo, ctx, forceLog)
 }
 
 func GetMock() IGoTokenomicsWrapper {
