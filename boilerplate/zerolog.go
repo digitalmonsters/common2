@@ -17,7 +17,7 @@ func SetupZeroLog() {
 		return
 	}
 
-	zerolog.CallerMarshalFunc = func(file string, line int) string {
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
 		sp := strings.Split(file, "/")
 
 		segments := 4
