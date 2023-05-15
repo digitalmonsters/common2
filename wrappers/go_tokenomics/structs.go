@@ -234,6 +234,6 @@ type GetLeaderBoardTopPointsByPeriodRequest struct {
 }
 
 type GetLeaderBoardTopPointsByPeriodResp struct {
-	UserId       null.Int `json:"user_id"`
-	AmountPoints float64  `json:"amount_points"`
+	UserId       null.Int        `json:"user_id"`
+	AmountPoints decimal.Decimal `json:"amount_points"`
 }

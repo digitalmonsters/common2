@@ -35,7 +35,7 @@ type IGoTokenomicsWrapper interface {
 	GetActivitiesInfo(userId int64, apmTransaction *apm.Transaction, forceLog bool) chan wrappers.GenericResponseChan[GetActivitiesInfoResponse]
 	CreateBotViews(botViews map[int64][]int64, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
 	WriteOffUserTokensForAd(userId int64, adCampaignId int64, amount decimal.Decimal, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
-	GetLeaderBoardTopPointsByPeriod(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any]
+	GetLeaderBoardTopPointsByPeriod(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[*[]GetLeaderBoardTopPointsByPeriodResp]
 }
 
 func NewGoTokenomicsWrapper(config boilerplate.WrapperConfig) IGoTokenomicsWrapper {
@@ -216,8 +216,8 @@ func (w *Wrapper) WriteOffUserTokensForAd(userId int64, adCampaignId int64, amou
 	}, map[string]string{}, w.defaultTimeout, apm.TransactionFromContext(ctx), w.serviceName, forceLog)
 }
 
-func (w *Wrapper) GetLeaderBoardTopPointsByPeriod(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[any] {
-	return wrappers.ExecuteRpcRequestAsync[any](w.baseWrapper, w.apiUrl, "GetLeaderBoardTopPointsByPeriod", GetLeaderBoardTopPointsByPeriodRequest{
+func (w *Wrapper) GetLeaderBoardTopPointsByPeriod(timeFrom null.Time, timeTo null.Time, ctx context.Context, forceLog bool) chan wrappers.GenericResponseChan[*[]GetLeaderBoardTopPointsByPeriodResp] {
+	return wrappers.ExecuteRpcRequestAsync[*[]GetLeaderBoardTopPointsByPeriodResp](w.baseWrapper, w.apiUrl, "GetLeaderBoardTopPointsByPeriod", GetLeaderBoardTopPointsByPeriodRequest{
 		TimeFrom: timeFrom,
 		TimeTo:   timeTo,
 	}, map[string]string{}, w.defaultTimeout, apm.TransactionFromContext(ctx), w.serviceName, forceLog)
