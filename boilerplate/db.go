@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	postgres "go.elastic.co/apm/module/apmgormv2/driver/postgres"
 	"gorm.io/gorm"
+	gorm_logger "gorm.io/gorm/logger"
 	"time"
 )
 
@@ -22,7 +23,7 @@ func GetGormConnection(config DbConfig) (*gorm.DB, error) {
 
 	mainDb, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
 		QueryFields: false,
-		Logger:      nil,
+		Logger:      gorm_logger.Default.LogMode(gorm_logger.Info),
 	})
 
 	if err != nil {
