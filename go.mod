@@ -1,6 +1,7 @@
 module github.com/digitalmonsters/go-common
 
 go 1.18
+replace github.com/digitalmonsters/go-common => /Users/apple/projects/go-common
 
 require (
 	github.com/RichardKnop/machinery v1.10.6

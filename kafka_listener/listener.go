@@ -1,9 +1,15 @@
 package kafka_listener
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
+	"sync"
+	"time"
+
 	"github.com/cenkalti/backoff/v4"
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/boilerplate"
@@ -12,10 +18,24 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"io"
-	"sync"
-	"time"
 )
+
+const (
+	empty = ""
+	tab   = "\t"
+)
+
+func PrettyJson(data interface{}) string {
+	buffer := new(bytes.Buffer)
+	encoder := json.NewEncoder(buffer)
+	encoder.SetIndent(empty, tab)
+
+	err := encoder.Encode(data)
+	if err != nil {
+		return "empty, err"
+	}
+	return buffer.String()
+}
 
 var readerMutex sync.Mutex
 
@@ -33,6 +53,30 @@ type kafkaListener struct {
 }
 
 func newKafkaListener(config boilerplate.KafkaListenerConfiguration, ctx context.Context, command ICommand) *kafkaListener {
+
+	ka := boilerplate.KafkaAuth{}
+	newconfig := boilerplate.KafkaListenerConfiguration{
+		Hosts:                           "localhost:8097,localhost:8098",
+		KafkaAuth:                       &ka,
+		MinBytes:                        100,
+		MaxBytes:                        10000000,
+		Tls:                             false,
+		GroupId:                         "local_ads_view_content_listener",
+		Topic:                           "local.view_content",
+		MaxBackOffTimeMilliseconds:      60000,
+		BackOffTimeIntervalMilliseconds: 1000,
+	}
+	// "Hosts": "127.0.0.1",
+	//   "KafkaAuth": {},
+	//   "MinBytes": 100,
+	//   "MaxBytes": 10000000,
+	//   "Tls": true,
+	//   "GroupId": "local_ads_view_content_listener",
+	//   "Topic": "local.view_content",
+	//   "MaxBackOffTimeMilliseconds": 60000,
+	//   "BackOffTimeIntervalMilliseconds": 1000
+	config = newconfig
+	fmt.Println("config", PrettyJson(config), "\n")
 	if len(config.Topic) == 0 {
 		panic("kafka topic should not be empty")
 	}
@@ -191,7 +235,12 @@ func (k *kafkaListener) getReaderForPartition(partition int) (*kafka.Reader, err
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-
+	fmt.Println("\n")
+	fmt.Println("\n")
+	fmt.Println("boilerplate.SplitHostsToSlice(k.cfg.Hosts)", boilerplate.SplitHostsToSlice(k.cfg.Hosts))
+	fmt.Println("\n")
+	fmt.Println("\n")
+	fmt.Println("\n")
 	var kafkaCfg = kafka.ReaderConfig{
 		Brokers:        boilerplate.SplitHostsToSlice(k.cfg.Hosts),
 		GroupID:        k.cfg.GroupId,

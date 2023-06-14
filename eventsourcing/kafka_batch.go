@@ -5,6 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/cenkalti/backoff/v4"
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/boilerplate"
@@ -16,8 +19,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"sync"
-	"time"
 )
 
 type kafkaRecord struct {
@@ -93,7 +94,7 @@ var registrationMut = sync.Mutex{}
 
 func NewKafkaBatchPublisher[T IEventData](publisherName string, cfg boilerplate.KafkaBatchWriterV2Configuration,
 	ctx context.Context) Publisher[T] {
-	hosts := boilerplate.SplitHostsToSlice(cfg.Hosts)
+	hosts := []string{"localhost:8097", "localhost:8098"}
 
 	registrationMut.Lock()
 
@@ -365,7 +366,7 @@ func (p *KafkaEventPublisherV2[T]) flush(calculateAsRetry bool) error {
 	return err
 }
 
-//nolint
+// nolint
 func (p *KafkaEventPublisherV2[T]) fancyServiceMapAsync() {
 	go func() {
 		for !p.isClosed {

@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -12,7 +14,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"time"
 )
 
 type KafkaEventPublisher struct {
@@ -25,8 +26,8 @@ type KafkaEventPublisher struct {
 }
 
 func NewKafkaEventPublisher(cfg boilerplate.KafkaWriterConfiguration, topicConfig boilerplate.KafkaTopicConfig) *KafkaEventPublisher {
-	hosts := boilerplate.SplitHostsToSlice(cfg.Hosts)
-
+	hosts := []string{"localhost:8097", "localhost:8098"}
+	fmt.Println("anshuman\n\n\n", hosts)
 	h := &KafkaEventPublisher{
 		cfg: cfg,
 		writer: &kafka.Writer{
@@ -134,6 +135,7 @@ func (s *KafkaEventPublisher) ensureTopicExists(topicConfig boilerplate.KafkaTop
 	})
 
 	if err != nil {
+		fmt.Println("err", err)
 		s.logger.Fatal().Err(err).Msgf("can not ensure that topic exists [%v]", topicConfig.Name)
 	}
 

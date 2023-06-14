@@ -3,6 +3,8 @@ package notification_gateway
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/eventsourcing"
@@ -10,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"go.elastic.co/apm"
-	"time"
 )
 
 type Wrapper struct {
@@ -53,8 +54,8 @@ func NewNotificationGatewayWrapper(config boilerplate.WrapperConfig) INotificati
 
 	w.pushPublisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
+			Hosts: "localhost:8097,localhost:8098",
+			Tls:   false,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.push_messages", env),
 			NumPartitions:     24,
@@ -62,8 +63,8 @@ func NewNotificationGatewayWrapper(config boilerplate.WrapperConfig) INotificati
 		})
 	w.emailPublisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
+			Hosts: "localhost:8097,localhost:8098",
+			Tls:   false,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.email", env),
 			NumPartitions:     24,
