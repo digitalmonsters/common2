@@ -41,8 +41,8 @@ func NewNotificationGatewayWrapper(config boilerplate.WrapperConfig) INotificati
 
 		log.Warn().Msgf("Api Url is missing for NotificationGateway. Setting as default : %v", config.ApiUrl)
 	}
-
-	env := boilerplate.GetCurrentEnvironment().ToString()
+	// TODO: Replace with SQS/SNS as needed
+	//env := boilerplate.GetCurrentEnvironment().ToString()
 
 	w := &Wrapper{
 		baseWrapper:    wrappers.GetBaseWrapper(),
@@ -51,24 +51,24 @@ func NewNotificationGatewayWrapper(config boilerplate.WrapperConfig) INotificati
 		serviceName:    "notification_gateway",
 	}
 
-	w.pushPublisher = eventsourcing.NewKafkaEventPublisher(
-		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
-		}, boilerplate.KafkaTopicConfig{
-			Name:              fmt.Sprintf("%v.push_messages", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
-		})
-	w.emailPublisher = eventsourcing.NewKafkaEventPublisher(
-		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
-		}, boilerplate.KafkaTopicConfig{
-			Name:              fmt.Sprintf("%v.email", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
-		})
+	//w.pushPublisher = eventsourcing.NewKafkaEventPublisher(
+	//	boilerplate.KafkaWriterConfiguration{
+	//		Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
+	//		Tls:   true,
+	//	}, boilerplate.KafkaTopicConfig{
+	//		Name:              fmt.Sprintf("%v.push_messages", env),
+	//		NumPartitions:     24,
+	//		ReplicationFactor: 2,
+	//	})
+	//w.emailPublisher = eventsourcing.NewKafkaEventPublisher(
+	//	boilerplate.KafkaWriterConfiguration{
+	//		Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
+	//		Tls:   true,
+	//	}, boilerplate.KafkaTopicConfig{
+	//		Name:              fmt.Sprintf("%v.email", env),
+	//		NumPartitions:     24,
+	//		ReplicationFactor: 2,
+	//	})
 
 	return w
 }

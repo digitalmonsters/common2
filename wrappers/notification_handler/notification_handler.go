@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
-	"github.com/digitalmonsters/go-common/eventsourcing"
 	"github.com/digitalmonsters/go-common/wrappers"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -33,28 +32,28 @@ func NewNotificationHandlerWrapper(config boilerplate.WrapperConfig) INotificati
 		apiUrl:         fmt.Sprintf("%v/rpc-service", common.StripSlashFromUrl(config.ApiUrl)),
 		serviceName:    "notification-handler",
 	}
+	// TODO: Replace with SQS/SNS as needed
+	//env := boilerplate.GetCurrentEnvironment().ToString()
 
-	env := boilerplate.GetCurrentEnvironment().ToString()
-
-	w.publisher = eventsourcing.NewKafkaEventPublisher(
-		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
-		}, boilerplate.KafkaTopicConfig{
-			Name:              fmt.Sprintf("%v.handler_sending_queue", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
-		})
-
-	w.customPublisher = eventsourcing.NewKafkaEventPublisher(
-		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
-			Tls:   true,
-		}, boilerplate.KafkaTopicConfig{
-			Name:              fmt.Sprintf("%v.handler_sending_queue_custom", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
-		})
+	//w.publisher = eventsourcing.NewKafkaEventPublisher(
+	//	boilerplate.KafkaWriterConfiguration{
+	//		Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
+	//		Tls:   true,
+	//	}, boilerplate.KafkaTopicConfig{
+	//		Name:              fmt.Sprintf("%v.handler_sending_queue", env),
+	//		NumPartitions:     24,
+	//		ReplicationFactor: 2,
+	//	})
+	//
+	//w.customPublisher = eventsourcing.NewKafkaEventPublisher(
+	//	boilerplate.KafkaWriterConfiguration{
+	//		Hosts: "kafka-notifications-1.infra.svc.cluster.local:9094,kafka-notifications-2.infra.svc.cluster.local:9094",
+	//		Tls:   true,
+	//	}, boilerplate.KafkaTopicConfig{
+	//		Name:              fmt.Sprintf("%v.handler_sending_queue_custom", env),
+	//		NumPartitions:     24,
+	//		ReplicationFactor: 2,
+	//	})
 
 	return w
 }
