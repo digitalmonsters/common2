@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	HttpMigratorDefaultUrl = "http://configurator/internal/json/migrator"
+	HttpMigratorDefaultUrl = "http://localhost:8000/internal/json/migrator"
 )
 
 type Migrator interface {

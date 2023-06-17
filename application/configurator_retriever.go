@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	HttpRetrieverDefaultUrl = "http://configurator/internal/json"
+	HttpRetrieverDefaultUrl = "http://localhost:8000/internal/json"
 )
 
 type Retriever interface {
