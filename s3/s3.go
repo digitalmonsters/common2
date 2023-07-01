@@ -2,11 +2,12 @@ package s3
 
 import (
 	"bytes"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalmonsters/go-common/boilerplate"
-	"time"
 )
 
 type IUploader interface {
@@ -107,11 +108,13 @@ func (u *Uploader) UploadObject(path string, data []byte, contentType string) er
 
 func (u *Uploader) getClient() (*s3.S3, error) {
 	if u.session == nil {
-		if sess, err := session.NewSession(&aws.Config{Region: aws.String(u.config.Region)}); err != nil {
-			return nil, err
-		} else {
-			u.session = sess
-		}
+		sess := session.Must(session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+			Config: aws.Config{
+				Region: aws.String(u.config.Region),
+			},
+		}))
+		u.session = sess
 	}
 
 	if u.s3Client == nil {

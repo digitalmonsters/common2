@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -12,7 +14,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"time"
 )
 
 type KafkaEventPublisher struct {
@@ -163,7 +164,7 @@ func (s *KafkaEventPublisher) ensureTopicExists(topicConfig boilerplate.KafkaTop
 		res, err := client.CreateTopics(context.TODO(), &kafka.CreateTopicsRequest{
 			Addr: s.writer.Addr,
 			Topics: []kafka.TopicConfig{
-				kafka.TopicConfig{
+				{
 					Topic:             topicConfig.Name,
 					NumPartitions:     topicConfig.NumPartitions,
 					ReplicationFactor: topicConfig.ReplicationFactor,

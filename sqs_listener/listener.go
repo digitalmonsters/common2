@@ -10,14 +10,25 @@ import (
 )
 
 type SQSListener struct {
-	Conf     boilerplate.SQSConfiguration
-	Svc      *sqs.SQS
-	Callback func(m string) error
-	stopCh   chan struct{}
+	Conf          boilerplate.SQSConfiguration
+	Svc           *sqs.SQS
+	Callback      func(m string) error
+	stopCh        chan struct{}
+	ExecutionData ExecutionData
+	ServiceName   string
 }
 
 func (i *SQSListener) StartListener() {
 	// Continuously poll the SQS queue for messages
+	// var traceContext apm.TraceContext
+
+	// apmTransaction := apm_helper.StartNewApmTransactionWithTraceData(fmt.Sprintf("[%s] [%s]", i.ServiceName, cleanSQSUrl(i.Conf.Url)),
+	// 	"kafka_listener", nil,
+	// 	traceContext)
+
+	// processingSpan := apm_helper.StartNewApmTransaction(fmt.Sprintf("%s - %s with retry #%v", i.ServiceName, cleanSQSUrl(i.Conf.Url),
+	// 	retryCount), "internal",
+	// 	nil, apmTransaction)
 
 	defer i.StopListener()
 
