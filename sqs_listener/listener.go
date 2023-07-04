@@ -19,7 +19,7 @@ type SQSListener struct {
 }
 
 func (i *SQSListener) StartListener() {
-	go func() {
+	go func(url string) {
 		defer i.StopListener()
 		for {
 			select {
@@ -32,6 +32,7 @@ func (i *SQSListener) StartListener() {
 					MaxNumberOfMessages: aws.Int64(i.Conf.MaxMessages), // Receive up to 10 messages
 				})
 				if err != nil {
+					log.Println("Expected : ", url)
 					log.Printf("\nError receiving message : %s ; \nRetrying in 5 seconds; \nRegion : %s \nQueue URL : %s", err.Error(), i.Conf.Region, i.Conf.Url)
 					time.Sleep(5 * time.Second) // Pause for 5 seconds before retrying
 					continue
@@ -57,7 +58,7 @@ func (i *SQSListener) StartListener() {
 				time.Sleep(1 * time.Second)
 			}
 		}
-	}()
+	}(i.Conf.Url)
 }
 
 func (i *SQSListener) StopListener() {
