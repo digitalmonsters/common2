@@ -32,7 +32,7 @@ func (i *SQSListener) StartListener() {
 					MaxNumberOfMessages: aws.Int64(i.Conf.MaxMessages), // Receive up to 10 messages
 				})
 				if err != nil {
-					log.Printf("\nError receiving message : %s ; \nRetrying in 5 seconds", err.Error())
+					log.Printf("\nError receiving message : %s ; \nRetrying in 5 seconds; \nRegion : %s \nQueue URL : %s", err.Error(), i.Conf.Region, i.Conf.Url)
 					time.Sleep(5 * time.Second) // Pause for 5 seconds before retrying
 					continue
 				}
