@@ -8,6 +8,10 @@ import (
 )
 
 func InitSQS(conf boilerplate.SQSConfiguration) *sqs.SQS {
+	if conf.Url == "" || conf.Region == "" {
+		panic("SQS Url is required")
+	}
+
 	// Create a new AWS session
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
