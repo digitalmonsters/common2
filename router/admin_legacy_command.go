@@ -2,6 +2,9 @@ package router
 
 import (
 	"context"
+	"strings"
+
+	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
 	"github.com/digitalmonsters/go-common/rpc"
@@ -10,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 	"go.elastic.co/apm"
-	"strings"
 )
 
 type LegacyAdminCommand struct {
@@ -33,8 +35,8 @@ func NewLegacyAdminCommand(methodName string, fn CommandFunc) ICommand {
 	}
 }
 
-func (a LegacyAdminCommand) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Context, auth auth_go.IAuthGoWrapper, userValidator UserExecutorValidator) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
-	userId, isGuest, isBanned, language, err := publicCanExecuteLogic(httpCtx, a.requireIdentityValidation, a.allowBanned, userValidator)
+func (a LegacyAdminCommand) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Context, auth auth_go.IAuthGoWrapper, userValidator UserExecutorValidator, credentialsWrapper boilerplate.CredentialsWrapper) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
+	userId, isGuest, isBanned, language, err := publicCanExecuteLogic(httpCtx, a.requireIdentityValidation, a.allowBanned, userValidator, credentialsWrapper)
 
 	if err != nil {
 		return 0, isGuest, isBanned, language, err

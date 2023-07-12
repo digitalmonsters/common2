@@ -4,6 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http/pprof"
+	"os"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
@@ -18,11 +24,6 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"net/http/pprof"
-	"os"
-	"strings"
-	"sync"
-	"time"
 )
 
 type HttpRouter struct {
@@ -38,6 +39,7 @@ type HttpRouter struct {
 	rpcEndpointAdminLegacy   IRpcEndpoint
 	rpcEndpointService       IRpcEndpoint
 	endpointRegistratorMutex sync.Mutex
+	credentialsWrapper       boilerplate.CredentialsWrapper
 }
 
 var hostName string
@@ -53,13 +55,14 @@ var hostName string
 // /rpc-admin-legacy -> legacy admin command (command should use auth method 1.5)
 // /rpc-service - internal services -> (will not be available for external use)
 
-func NewRouter(rpcEndpointPath string, auth auth_go.IAuthGoWrapper) *HttpRouter {
+func NewRouter(rpcEndpointPath string, auth auth_go.IAuthGoWrapper, credentialsWrapper boilerplate.CredentialsWrapper) *HttpRouter {
 	h := &HttpRouter{
 		realRouter:               fastRouter.New(),
 		endpointRegistratorMutex: sync.Mutex{},
 		authGoWrapper:            auth,
 		restCommands:             map[string]*RestCommand{},
 		userExecutorValidator:    NewDefaultUserExecutorValidator(auth),
+		credentialsWrapper:       credentialsWrapper,
 	}
 
 	if hostname, _ := os.Hostname(); len(hostname) > 0 {
@@ -426,7 +429,7 @@ func (r *HttpRouter) executeAction(rpcRequest rpc.RpcRequest, cmd ICommand, http
 
 	shouldLog = forceLog
 
-	userId, isGuest, isBanned, language, rpcError := cmd.CanExecute(httpCtx, ctx, r.authGoWrapper, r.userExecutorValidator)
+	userId, isGuest, isBanned, language, rpcError := cmd.CanExecute(httpCtx, ctx, r.authGoWrapper, r.userExecutorValidator, r.credentialsWrapper)
 
 	if rpcError != nil {
 		rpcResponse.Error = rpcError

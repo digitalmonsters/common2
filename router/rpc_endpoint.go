@@ -1,8 +1,9 @@
 package router
 
 import (
-	"github.com/rs/zerolog/log"
 	"reflect"
+
+	"github.com/rs/zerolog/log"
 )
 
 type IRpcEndpoint interface {

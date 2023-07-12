@@ -12,6 +12,7 @@ require (
 	github.com/gammazero/workerpool v1.1.2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gocql/gocql v1.0.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imroc/req/v3 v3.10.0
 	github.com/jackc/pgx/v4 v4.16.0

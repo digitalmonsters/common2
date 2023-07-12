@@ -2,15 +2,18 @@ package router
 
 import (
 	"context"
+	"strconv"
+	"strings"
+
+	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
 	"github.com/digitalmonsters/go-common/error_codes"
 	"github.com/digitalmonsters/go-common/rpc"
 	"github.com/digitalmonsters/go-common/translation"
 	"github.com/digitalmonsters/go-common/wrappers/auth_go"
+	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
-	"strconv"
-	"strings"
 )
 
 type ICommand interface {
@@ -24,7 +27,13 @@ type ICommand interface {
 	GetHttpMethod() string
 	GetObj() string
 	CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Context, auth auth_go.IAuthGoWrapper,
-		userValidator UserExecutorValidator) (userId int64, isGuest bool, isBanned bool, language translation.Language, err *rpc.ExtendedLocalRpcError)
+		userValidator UserExecutorValidator, credentialsWrapper boilerplate.CredentialsWrapper) (userId int64, isGuest bool, isBanned bool, language translation.Language, err *rpc.ExtendedLocalRpcError)
+}
+
+type userCustomClaims struct {
+	UserID  string `json:"user_id"`
+	IsGuest bool   `json:"is_guest"`
+	jwt.StandardClaims
 }
 
 type CommandFunc func(request []byte, executionData MethodExecutionData) (interface{}, *error_codes.ErrorWithCode)
@@ -83,34 +92,75 @@ func (c Command) GetFn() CommandFunc {
 	return c.fn
 }
 
-func (c Command) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Context, auth auth_go.IAuthGoWrapper, userValidator UserExecutorValidator) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
-	return publicCanExecuteLogic(httpCtx, c.requireIdentityValidation, c.allowBanned, userValidator)
+func (c Command) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Context, auth auth_go.IAuthGoWrapper, userValidator UserExecutorValidator, credentialsWrapper boilerplate.CredentialsWrapper) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
+	return publicCanExecuteLogic(httpCtx, c.requireIdentityValidation, c.allowBanned, userValidator, credentialsWrapper)
 }
 
-func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation bool, allowBanned bool, userValidator UserExecutorValidator) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
+func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation bool, allowBanned bool, userValidator UserExecutorValidator, credentialsWrapper boilerplate.CredentialsWrapper) (int64, bool, bool, translation.Language, *rpc.ExtendedLocalRpcError) {
 	var userId int64
 	var isGuest bool
 	var isBanned bool
 	language := translation.DefaultUserLanguage
 
-	if externalAuthValue := ctx.Request.Header.Peek("X-Ext-Authz-Check-Result"); strings.EqualFold(string(externalAuthValue), "allowed") {
-		if userIdHead := ctx.Request.Header.Peek("User-Id"); len(userIdHead) > 0 {
-			if userIdParsed, err := strconv.ParseInt(string(userIdHead), 10, 64); err != nil {
-				err = errors.Wrapf(err, "can not parse str to int for user-id. input string %v", userIdHead)
-
-				return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
-					RpcError: rpc.RpcError{
-						Code:        error_codes.InvalidJwtToken,
-						Message:     err.Error(),
-						Hostname:    hostName,
-						ServiceName: hostName,
-					},
-					LocalHandlingError: err,
-				}
-			} else {
-				userId = userIdParsed
-			}
+	// Edit this
+	authHeader := ctx.Request.Header.Peek("Authorization")
+	authHeaderParts := strings.Fields(string(authHeader))
+	if len(authHeaderParts) != 2 || strings.ToLower(authHeaderParts[0]) != "bearer" {
+		return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
+			RpcError: rpc.RpcError{
+				Code:        error_codes.InvalidJwtToken,
+				Message:     "missing or malformed jwt",
+				Hostname:    hostName,
+				ServiceName: hostName,
+			},
+			LocalHandlingError: errors.New("missing or malformed jwt"),
 		}
+	}
+
+	// Handle JWT
+	token, err := jwt.ParseWithClaims(authHeaderParts[1], &userCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return credentialsWrapper.UserSecretKey, nil
+	})
+
+	if token == nil || err != nil {
+		return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
+			RpcError: rpc.RpcError{
+				Code:        error_codes.InvalidJwtToken,
+				Message:     "missing or malformed jwt",
+				Hostname:    hostName,
+				ServiceName: hostName,
+			},
+			LocalHandlingError: errors.New("missing or malformed jwt"),
+		}
+	} else if !token.Valid {
+		return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
+			RpcError: rpc.RpcError{
+				Code:        error_codes.InvalidJwtToken,
+				Message:     "missing or malformed jwt",
+				Hostname:    hostName,
+				ServiceName: hostName,
+			},
+			LocalHandlingError: errors.New("missing or malformed jwt"),
+		}
+	}
+
+	claims := token.Claims.(userCustomClaims)
+
+	userIdParsed, err := strconv.ParseInt(claims.UserID, 10, 64)
+	if err != nil {
+		err = errors.Wrapf(err, "can not parse str to int for user-id. input string %v", claims.UserID)
+
+		return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
+			RpcError: rpc.RpcError{
+				Code:        error_codes.InvalidJwtToken,
+				Message:     err.Error(),
+				Hostname:    hostName,
+				ServiceName: hostName,
+			},
+			LocalHandlingError: err,
+		}
+	} else {
+		userId = userIdParsed
 	}
 
 	if userId > 0 {
@@ -162,23 +212,7 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 			}
 		}
 
-		if isGuestHeader := ctx.Request.Header.Peek("Is-Guest"); len(isGuestHeader) > 0 {
-			if parsedIsGuest, err := strconv.ParseBool(string(isGuestHeader)); err != nil {
-				err = errors.Wrapf(err, "can not parse str to int for is-guest. input string %v", isGuestHeader)
-
-				return 0, usersResp.Guest, isBanned, language, &rpc.ExtendedLocalRpcError{
-					RpcError: rpc.RpcError{
-						Code:        error_codes.InvalidJwtToken,
-						Message:     err.Error(),
-						Hostname:    hostName,
-						ServiceName: hostName,
-					},
-					LocalHandlingError: err,
-				}
-			} else {
-				isGuest = parsedIsGuest
-			}
-		}
+		isGuest = claims.IsGuest
 	}
 
 	if requireIdentityValidation && userId <= 0 {

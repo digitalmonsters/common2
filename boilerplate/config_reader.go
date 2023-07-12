@@ -326,3 +326,9 @@ func addFile(path string, sources []source.Option) []source.Option {
 	}
 	return sources
 }
+
+type CredentialsWrapper struct {
+	UserSecretKey    string `json:"user_secret_key"`
+	AdminSecretKey   string `json:"admin_secret_key"`
+	RefreshSecretKey string `json:"refresh_secret_key"`
+}
