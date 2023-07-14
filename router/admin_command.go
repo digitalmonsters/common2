@@ -103,7 +103,7 @@ func (a AdminCommand) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Conte
 		}
 	}
 
-	claims := token.Claims.(userCustomClaims)
+	claims := token.Claims.(*userCustomClaims)
 
 	userIdParsed, err := strconv.ParseInt(claims.UserID, 10, 64)
 	if err != nil {

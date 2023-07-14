@@ -145,7 +145,7 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 			}
 		}
 
-		claims := token.Claims.(userCustomClaims)
+		claims := token.Claims.(*userCustomClaims)
 
 		userIdParsed, err := strconv.ParseInt(claims.UserID, 10, 64)
 		if err != nil {
