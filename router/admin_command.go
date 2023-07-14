@@ -78,7 +78,7 @@ func (a AdminCommand) CanExecute(httpCtx *fasthttp.RequestCtx, ctx context.Conte
 
 	// Handle JWT
 	token, err := jwt.ParseWithClaims(authHeaderParts[1], &userCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return credentialsWrapper.AdminSecretKey, nil
+		return []byte(credentialsWrapper.AdminSecretKey), nil
 	})
 
 	if token == nil || err != nil {

@@ -120,7 +120,7 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 
 		// Handle JWT
 		token, err := jwt.ParseWithClaims(authHeaderParts[1], &userCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return credentialsWrapper.UserSecretKey, nil
+			return []byte(credentialsWrapper.UserSecretKey), nil
 		})
 
 		if token == nil || err != nil {
