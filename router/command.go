@@ -102,6 +102,10 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 	var isBanned bool
 	language := translation.DefaultUserLanguage
 
+	if !requireIdentityValidation {
+		return userId, isGuest, isBanned, language, nil
+	}
+
 	// Edit this
 	authHeader := ctx.Request.Header.Peek("Authorization")
 	if authHeader != nil {
