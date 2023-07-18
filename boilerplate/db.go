@@ -2,11 +2,13 @@ package boilerplate
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	postgres "go.elastic.co/apm/module/apmgormv2/driver/postgres"
 	"gorm.io/gorm"
-	"time"
+	"gorm.io/gorm/logger"
 )
 
 func GetDbConnectionString(config DbConfig) (string, error) {
@@ -22,7 +24,8 @@ func GetGormConnection(config DbConfig) (*gorm.DB, error) {
 
 	mainDb, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
 		QueryFields: false,
-		Logger:      nil,
+		Logger:      logger.Default.LogMode(logger.Info),
+		PrepareStmt: true,
 	})
 
 	if err != nil {
