@@ -3,14 +3,13 @@ package notification_gateway
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/digitalmonsters/go-common/boilerplate"
 	"github.com/digitalmonsters/go-common/common"
-	"github.com/digitalmonsters/go-common/eventsourcing"
 	"github.com/digitalmonsters/go-common/wrappers"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"go.elastic.co/apm"
-	"time"
 )
 
 type Wrapper struct {
@@ -18,8 +17,8 @@ type Wrapper struct {
 	defaultTimeout time.Duration
 	apiUrl         string
 	serviceName    string
-	pushPublisher  *eventsourcing.KafkaEventPublisher
-	emailPublisher *eventsourcing.KafkaEventPublisher
+	// pushPublisher  *eventsourcing.KafkaEventPublisher
+	// emailPublisher *eventsourcing.KafkaEventPublisher
 }
 
 type INotificationGatewayWrapper interface {
@@ -81,21 +80,21 @@ func (w *Wrapper) EnqueuePushForUser(msg []SendPushRequest, ctx context.Context)
 			close(ch)
 		}()
 
-		if w.pushPublisher == nil {
-			ch <- errors.New("publisher is nil")
-		}
-		var i []eventsourcing.IEventData
+		// if w.pushPublisher == nil {
+		// 	ch <- errors.New("publisher is nil")
+		// }
+		// var i []eventsourcing.IEventData
 
-		for _, m := range msg {
-			i = append(i, m)
-		}
+		// for _, m := range msg {
+		// 	i = append(i, m)
+		// }
 
-		if err := w.pushPublisher.Publish(apm.TransactionFromContext(ctx),
-			i...); len(err) > 0 {
-			ch <- err[0]
+		// if err := w.pushPublisher.Publish(apm.TransactionFromContext(ctx),
+		// 	i...); len(err) > 0 {
+		// 	ch <- err[0]
 
-			return
-		}
+		// 	return
+		// }
 
 		ch <- nil
 	}()
@@ -111,21 +110,21 @@ func (w *Wrapper) EnqueueEmail(msg []SendEmailMessageRequest, ctx context.Contex
 			close(ch)
 		}()
 
-		if w.emailPublisher == nil {
-			ch <- errors.New("publisher is nil")
-		}
-		var i []eventsourcing.IEventData
+		// if w.emailPublisher == nil {
+		// 	ch <- errors.New("publisher is nil")
+		// }
+		// var i []eventsourcing.IEventData
 
-		for _, m := range msg {
-			i = append(i, m)
-		}
+		// for _, m := range msg {
+		// 	i = append(i, m)
+		// }
 
-		if err := w.emailPublisher.Publish(apm.TransactionFromContext(ctx),
-			i...); len(err) > 0 {
-			ch <- err[0]
+		// if err := w.emailPublisher.Publish(apm.TransactionFromContext(ctx),
+		// 	i...); len(err) > 0 {
+		// 	ch <- err[0]
 
-			return
-		}
+		// 	return
+		// }
 
 		ch <- nil
 	}()
