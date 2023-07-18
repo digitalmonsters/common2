@@ -28,7 +28,7 @@ func SendMessage[T any](c *Publisher, data T) (*sqs.SendMessageOutput, error) {
 		return nil, err
 	}
 
-	fmt.Println("Url : ", c.Conf.Url, "\nMessage Received  : ", message)
+	fmt.Println("Url : ", c.Conf.Url, "\nMessage Sent  : ", message)
 
 	return result, nil
 }
