@@ -2,6 +2,7 @@ package sqs_listener
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -26,6 +27,8 @@ func SendMessage[T any](c *Publisher, data T) (*sqs.SendMessageOutput, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Url : ", c.Conf.Url, "\nMessage Received  : ", message)
 
 	return result, nil
 }

@@ -1,6 +1,7 @@
 package sqs_listener
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -40,6 +41,7 @@ func (i *SQSListener) StartListener() {
 
 				// Process each received message
 				for _, msg := range result.Messages {
+					fmt.Println("Url : ", i.Conf.Url, "\nMessage Received  : ", *msg.Body)
 					i.Callback(*msg.Body)
 
 					if err == nil {
@@ -49,7 +51,7 @@ func (i *SQSListener) StartListener() {
 							ReceiptHandle: msg.ReceiptHandle,
 						})
 						if err != nil {
-							log.Println("Error deleting message:", err)
+							fmt.Println("Error deleting message:", err)
 						}
 					}
 				}
