@@ -102,15 +102,14 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 	var isBanned bool
 	language := translation.DefaultUserLanguage
 
-	if !requireIdentityValidation {
-		return userId, isGuest, isBanned, language, nil
-	}
-
 	// Edit this
 	authHeader := ctx.Request.Header.Peek("Authorization")
 	if authHeader != nil {
 		authHeaderParts := strings.Fields(string(authHeader))
 		if len(authHeaderParts) != 2 || strings.ToLower(authHeaderParts[0]) != "bearer" {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.InvalidJwtToken,
@@ -128,6 +127,9 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 		})
 
 		if token == nil || err != nil {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.InvalidJwtToken,
@@ -138,6 +140,9 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 				LocalHandlingError: errors.New("missing or malformed jwt"),
 			}
 		} else if !token.Valid {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.InvalidJwtToken,
@@ -153,8 +158,10 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 
 		userIdParsed, err := strconv.ParseInt(claims.UserID, 10, 64)
 		if err != nil {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			err = errors.Wrapf(err, "can not parse str to int for user-id. input string %v", claims.UserID)
-
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.InvalidJwtToken,
@@ -175,6 +182,9 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 		usersResp, err := userValidator.Validate(userId, ctx)
 
 		if err != nil {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			err = errors.Wrap(err, "can not get user info from auth service")
 
 			return 0, isGuest, false, language, &rpc.ExtendedLocalRpcError{
@@ -194,7 +204,9 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 
 		if !allowBanned && isBanned {
 			err := errors.WithStack(errors.New("user banned"))
-
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.Forbidden,
@@ -207,8 +219,10 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 		}
 
 		if usersResp.Deleted {
+			if !requireIdentityValidation {
+				return userId, isGuest, isBanned, language, nil
+			}
 			err := errors.WithStack(errors.New("user deleted"))
-
 			return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 				RpcError: rpc.RpcError{
 					Code:        error_codes.Forbidden,
@@ -223,7 +237,6 @@ func publicCanExecuteLogic(ctx *fasthttp.RequestCtx, requireIdentityValidation b
 
 	if requireIdentityValidation && userId <= 0 {
 		err := errors.New("public method requires identity validation")
-
 		return 0, isGuest, isBanned, language, &rpc.ExtendedLocalRpcError{
 			RpcError: rpc.RpcError{
 				Code:        error_codes.MissingJwtToken,
