@@ -2,6 +2,9 @@ package boilerplate
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/brokers/eager"
 	"github.com/RichardKnop/machinery/v1/config"
@@ -10,8 +13,6 @@ import (
 	redislock "github.com/RichardKnop/machinery/v1/locks/redis"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"strconv"
-	"strings"
 )
 
 // NewServer creates Server instance
@@ -54,7 +55,7 @@ func LockFactory(cnf *config.Config) (lockiface.Lock, error) {
 			parts := strings.Split(cnf.Lock, "rediss://")
 			if len(parts) != 2 {
 				return nil, fmt.Errorf(
-					"Redis broker connection string should be in format rediss://host:port, instead got %s",
+					"redis broker connection string should be in format rediss://host:port, instead got %s",
 					cnf.Lock,
 				)
 			}
@@ -86,7 +87,7 @@ func LockFactory(cnf *config.Config) (lockiface.Lock, error) {
 			parts := strings.Split(cnf.Lock, "redis://")
 			if len(parts) != 2 {
 				return nil, fmt.Errorf(
-					"Redis broker connection string should be in format redis://host:port, instead got %s",
+					"redis broker connection string should be in format redis://host:port, instead got %s",
 					cnf.Lock,
 				)
 			}

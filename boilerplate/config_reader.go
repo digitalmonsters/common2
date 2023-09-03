@@ -107,6 +107,12 @@ type DbConfig struct {
 	MaxConnectionIdleSec     int    `json:"MaxConnectionIdleSec"`
 }
 
+type ElasticConfig struct {
+	Hosts    string `json:"Hosts"`
+	UserName string `json:"UserName"`
+	Password string `json:"Password"`
+}
+
 type RedisConfig struct {
 	Host     string `json:"Host"`
 	Port     int    `json:"Port"`
@@ -191,18 +197,18 @@ func GetCurrentEnvironment() Environment {
 	}
 }
 
-type ScyllaConfiguration struct {
-	Hosts             string `json:"Hosts"`
-	UserName          string `json:"UserName"`
-	Password          string `json:"Password"`
-	Keyspace          string `json:"Keyspace"`
-	Enabled           bool   `json:"Enabled"`
-	PageSize          int    `json:"PageSize"`
-	NumConns          int    `json:"NumConns"`
-	MaxRoutingKeyInfo int    `json:"MaxRoutingKeyInfo"`
-	MaxPreparedStmts  int    `json:"MaxPreparedStmts"`
-	TimeoutSeconds    int    `json:"TimeoutSeconds"`
-}
+// type ScyllaConfiguration struct {
+// 	Hosts             string `json:"Hosts"`
+// 	UserName          string `json:"UserName"`
+// 	Password          string `json:"Password"`
+// 	Keyspace          string `json:"Keyspace"`
+// 	Enabled           bool   `json:"Enabled"`
+// 	PageSize          int    `json:"PageSize"`
+// 	NumConns          int    `json:"NumConns"`
+// 	MaxRoutingKeyInfo int    `json:"MaxRoutingKeyInfo"`
+// 	MaxPreparedStmts  int    `json:"MaxPreparedStmts"`
+// 	TimeoutSeconds    int    `json:"TimeoutSeconds"`
+// }
 
 var configuration interface{}
 

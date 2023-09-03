@@ -11,6 +11,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/davecgh/go-spew v1.1.1
+	github.com/elastic/go-elasticsearch/v8 v8.9.0
 	github.com/fasthttp/router v1.4.8
 	github.com/gammazero/workerpool v1.1.2
 	github.com/go-redis/redis/v8 v8.11.5
@@ -26,7 +27,6 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/romanyx/polluter v1.2.2
 	github.com/rs/zerolog v1.26.1
-	github.com/scylladb/gocqlx/v2 v2.7.0
 	github.com/segmentio/kafka-go v0.4.31
 	github.com/shirou/gopsutil/v3 v3.22.3
 	github.com/shopspring/decimal v1.3.1
@@ -35,7 +35,6 @@ require (
 	github.com/thoas/go-funk v0.9.2
 	github.com/valyala/fasthttp v1.35.0
 	go.elastic.co/apm v1.15.0
-	go.elastic.co/apm/module/apmgocql/v2 v2.1.0
 	go.elastic.co/apm/module/apmgormv2 v1.15.0
 	go.elastic.co/apm/module/apmhttp v1.15.0
 	go.elastic.co/apm/module/apmzerolog v1.15.0
@@ -59,6 +58,7 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.0.0-20230329154755-1a3c63de0db6 // indirect
 	github.com/elastic/go-licenser v0.4.0 // indirect
 	github.com/elastic/go-sysinfo v1.7.1 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
@@ -112,7 +112,6 @@ require (
 	github.com/romanyx/jwalk v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
 	github.com/savsgio/gotils v0.0.0-20220401102855-e56b59f40436 // indirect
-	github.com/scylladb/go-reflectx v1.0.1 // indirect
 	github.com/streadway/amqp v1.0.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
@@ -126,7 +125,6 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.elastic.co/apm/module/apmsql v1.15.0 // indirect
-	go.elastic.co/apm/v2 v2.1.0 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.9.0 // indirect
 	go.opencensus.io v0.23.0 // indirect

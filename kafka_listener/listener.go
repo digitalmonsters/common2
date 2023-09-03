@@ -4,6 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"sync"
+	"time"
+
 	"github.com/cenkalti/backoff/v4"
 	"github.com/digitalmonsters/go-common/apm_helper"
 	"github.com/digitalmonsters/go-common/boilerplate"
@@ -12,9 +16,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
-	"io"
-	"sync"
-	"time"
 )
 
 var readerMutex sync.Mutex
