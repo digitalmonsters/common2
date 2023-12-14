@@ -52,23 +52,25 @@ func NewNotificationGatewayWrapper(config boilerplate.WrapperConfig) INotificati
 		serviceName:    "notification_gateway",
 	}
 
+	kafkaConfig := config.GetKafkaConfig()
+
 	w.pushPublisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092",
-			Tls:   false,
+			Hosts: kafkaConfig.Hosts,
+			Tls:   kafkaConfig.Tls,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.notifications.push_messages", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
+			NumPartitions:     kafkaConfig.Partitions,
+			ReplicationFactor: kafkaConfig.ReplicationFactor,
 		})
 	w.emailPublisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092",
-			Tls:   false,
+			Hosts: kafkaConfig.Hosts,
+			Tls:   kafkaConfig.Tls,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.notifications.email", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
+			NumPartitions:     kafkaConfig.Partitions,
+			ReplicationFactor: kafkaConfig.ReplicationFactor,
 		})
 
 	return w

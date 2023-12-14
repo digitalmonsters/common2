@@ -89,6 +89,34 @@ type WrapperConfig struct {
 	TimeoutSec int    `json:"TimeoutSec"`
 }
 
+type WrapperKafkaConfig struct {
+	Hosts             string
+	Tls               bool
+	Partitions        int
+	ReplicationFactor int
+}
+
+// GetKafkaConfig gets the kafka config for the current environment
+// TODO: this should be removed and replaced with a config file
+func (w *WrapperConfig) GetKafkaConfig() WrapperKafkaConfig {
+	environment := GetCurrentEnvironment().ToString()
+	if environment == "dev" || environment == "local" {
+		return WrapperKafkaConfig{
+			Hosts:             "localhost:9092",
+			Tls:               false,
+			Partitions:        1,
+			ReplicationFactor: 1,
+		}
+	}
+
+	return WrapperKafkaConfig{
+		Hosts:             "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092",
+		Tls:               false,
+		Partitions:        24,
+		ReplicationFactor: 2,
+	}
+}
+
 type ApmConfig struct {
 	LogLevel    string `json:"LogLevel"`
 	ServiceName string `json:"ServiceName"`

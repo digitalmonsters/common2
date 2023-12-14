@@ -36,25 +36,26 @@ func NewNotificationHandlerWrapper(config boilerplate.WrapperConfig) INotificati
 	}
 
 	env := boilerplate.GetCurrentEnvironment().ToString()
+	kafkaConfig := config.GetKafkaConfig()
 
 	w.publisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092",
-			Tls:   false,
+			Hosts: kafkaConfig.Hosts,
+			Tls:   kafkaConfig.Tls,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.notifications.handler_sending_queue", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
+			NumPartitions:     kafkaConfig.Partitions,
+			ReplicationFactor: kafkaConfig.ReplicationFactor,
 		})
 
 	w.customPublisher = eventsourcing.NewKafkaEventPublisher(
 		boilerplate.KafkaWriterConfiguration{
-			Hosts: "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092",
-			Tls:   false,
+			Hosts: kafkaConfig.Hosts,
+			Tls:   kafkaConfig.Tls,
 		}, boilerplate.KafkaTopicConfig{
 			Name:              fmt.Sprintf("%v.notifications.handler_sending_queue_custom", env),
-			NumPartitions:     24,
-			ReplicationFactor: 2,
+			NumPartitions:     kafkaConfig.Partitions,
+			ReplicationFactor: kafkaConfig.ReplicationFactor,
 		})
 
 	return w
