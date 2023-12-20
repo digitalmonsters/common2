@@ -19,6 +19,7 @@ const (
 	ConfigTypeInteger = ConfigType("integer")
 	ConfigTypeObject  = ConfigType("object")
 	ConfigTypeBool    = ConfigType("bool")
+	ConfigTypeArray   = ConfigType("array")
 )
 
 type ConfigCategory string
