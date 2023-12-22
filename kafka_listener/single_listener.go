@@ -38,7 +38,7 @@ func (s *SingleListener) ListenAsync(createTopicIfNotFound ...bool) IKafkaListen
 	}
 
 	if len(createTopicIfNotFound) == 0 {
-		createTopicIfNotFound = []bool{false}
+		createTopicIfNotFound = []bool{boilerplate.GetCurrentEnvironment() == boilerplate.Dev}
 	}
 
 	go func() {
